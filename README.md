@@ -8,7 +8,7 @@
 
 Vista de la interfaz correspondiente al módulo de Benchmark.
 
-![Frontend Benchmark](Front End_Benchmark.png)
+![Frontend Benchmark](Front_End_Benchmark.png)
 
 ---
 
@@ -16,7 +16,7 @@ Vista de la interfaz correspondiente al módulo de Benchmark.
 
 Vista de la interfaz correspondiente al módulo de Evaluación.
 
-![Frontend Evaluación](Front End_Evaluación.png)
+![Frontend Evaluación](Front_End_Evaluación.png)
 
 ---
 

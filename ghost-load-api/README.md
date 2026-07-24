@@ -4,6 +4,47 @@ Backend del proyecto **Ghost Load**, desarrollado para la simulación de NoCount
 
 Ghost Load ayuda a operadores de data centers a identificar capacidad no productiva, evaluar su madurez operativa y obtener un reporte PDF personalizado.
 
+## Ejecución local
+
+Requisitos:
+
+- Java 21.
+- PostgreSQL.
+
+Prepara la configuración local copiando la plantilla:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Después modifica `.env` con tus credenciales de PostgreSQL:
+
+```dotenv
+DB_URL=jdbc:postgresql://localhost:5432/ghost_load
+DB_USERNAME=postgres
+DB_PASSWORD=tu_password
+```
+
+Spring Boot carga este archivo automáticamente durante el desarrollo local.
+El archivo `.env` está ignorado por Git; únicamente `.env.example` debe
+versionarse.
+
+En Windows:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+La aplicación queda disponible en `http://localhost:8080`.
+
+Para ejecutar las pruebas:
+
+```powershell
+.\mvnw.cmd test
+```
+
+Las credenciales no deben guardarse en los archivos versionados.
+
 ## Objetivo del backend
 
 El backend será responsable de:

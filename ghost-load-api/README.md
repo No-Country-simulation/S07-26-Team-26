@@ -45,6 +45,23 @@ Para ejecutar las pruebas:
 
 Las credenciales no deben guardarse en los archivos versionados.
 
+## Administrador demo
+
+El entorno de desarrollo incluye un administrador para integrar el frontend:
+
+```text
+Email: admin@ghostload.local
+Password: GhostLoad2026!
+```
+
+La base de datos almacena únicamente el hash BCrypt de la contraseña.
+
+Login:
+
+```http
+POST /api/v1/admin/auth/login
+```
+
 ## Objetivo del backend
 
 El backend será responsable de:

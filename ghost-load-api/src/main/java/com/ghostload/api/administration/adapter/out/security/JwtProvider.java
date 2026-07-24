@@ -1,49 +1,67 @@
 package com.ghostload.api.administration.adapter.out.security;
 
+import com.ghostload.api.administration.application.port.out.GenerateAdminTokenPort;
+import com.ghostload.api.administration.application.port.out.GeneratedAdminToken;
+import com.ghostload.api.administration.configuration.JwtProperties;
+import com.ghostload.api.administration.domain.model.AdminUser;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.Date;
 
 @Component
-public class JwtProvider {
+public class JwtProvider implements GenerateAdminTokenPort {
 
-    // Generamos una firma segura temporal para codificar los tokens
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    private final Key key;
+    private final long expirationSeconds;
+    private final Clock clock;
 
-    // El token durará 1 día entero activo (en milisegundos)
-    private final long expirationTime = 86400000;
-
-    // Método para crear el token usando el nombre de usuario
-    public String generateToken(String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(key)
-                .compact();
+    public JwtProvider(JwtProperties properties, Clock clock) {
+        this.key = Keys.hmacShaKeyFor(properties.secret().getBytes(StandardCharsets.UTF_8));
+        this.expirationSeconds = properties.expirationSeconds();
+        this.clock = clock;
     }
 
-    // Método para validar que el token que nos envían sea real y no haya expirado
+    @Override
+    public GeneratedAdminToken generate(AdminUser adminUser) {
+        Instant issuedAt = clock.instant();
+        String token = Jwts.builder()
+                .setSubject(adminUser.email())
+                .claim("adminId", adminUser.id().toString())
+                .claim("role", adminUser.role().name())
+                .setIssuedAt(Date.from(issuedAt))
+                .setExpiration(Date.from(issuedAt.plusSeconds(expirationSeconds)))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+        return new GeneratedAdminToken(token, expirationSeconds);
+    }
+
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            parseClaims(token);
             return true;
         } catch (Exception e) {
             return false;
         }
     }
 
-    // Método para extraer el nombre de usuario de adentro del token
     public String getUsernameFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+        return parseClaims(token).getSubject();
+    }
+
+    public String getRoleFromToken(String token) {
+        return parseClaims(token).get("role", String.class);
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder().setSigningKey(key).build()
+                .parseClaimsJws(token).getBody();
     }
 }

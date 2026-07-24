@@ -1,0 +1,1726 @@
+openapi: 3.1.0
+info:
+  title: Ghost Load API
+  version: 1.0.0
+  description: |
+    API backend del MVP Ghost Load.
+
+    Cubre:
+    - Registro y continuidad de la evaluación del operador.
+    - Calculadora de capacidad.
+    - Benchmark de madurez.
+    - Resultados consolidados.
+    - Generación automática y descarga del PDF.
+    - Importación de contactos.
+    - Campañas de outreach.
+    - Tracking de invitaciones.
+    - Dashboard administrativo.
+
+    Convenciones principales:
+    - El correo identifica al operador.
+    - El header `X-Evaluation-Token` autoriza el acceso a una evaluación.
+    - El acceso administrativo utiliza JWT.
+    - El PDF se genera automáticamente al completar el benchmark.
+    - Los percentiles del MVP utilizan datos de demostración.
+  contact:
+    name: Ghost Load Team
+servers:
+  - url: http://localhost:8080
+    description: Desarrollo local
+  - url: https://api-staging.ghostload.example.com
+    description: Staging
+tags:
+  - name: Evaluations
+    description: Registro, continuidad y estado de la evaluación.
+  - name: Calculator
+    description: Cálculo y persistencia de KPIs de capacidad.
+  - name: Benchmark
+    description: Preguntas, respuestas, scoring y percentil.
+  - name: Reports
+    description: Estado y descarga del reporte PDF.
+  - name: Invitations
+    description: Resolución y tracking de invitaciones públicas.
+  - name: Admin Auth
+    description: Acceso administrativo.
+  - name: Admin Contacts
+    description: Importación y consulta de contactos.
+  - name: Admin Campaigns
+    description: Gestión de campañas de outreach.
+  - name: Admin Dashboard
+    description: Métricas y resultados acumulados.
+  - name: Admin Operators
+    description: Consulta administrativa de operadores y resultados.
+
+paths:
+  /api/v1/evaluations:
+    post:
+      tags: [Evaluations]
+      summary: Registrar operador y crear evaluación
+      operationId: createEvaluation
+      description: |
+        Registra o reutiliza un operador por correo, crea una nueva evaluación
+        y devuelve un token de continuidad.
+
+        Si se envía `invitationToken`, la evaluación queda vinculada a la
+        invitación y el tracking se actualiza a STARTED.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEvaluationRequest'
+            examples:
+              direct:
+                summary: Registro directo
+                value:
+                  firstName: Sarah
+                  lastName: Mitchell
+                  email: sarah.mitchell@northstar-dc.com
+                  companyName: Northstar Data Centers
+                  position: VP of Infrastructure
+                  country: United States
+                  consentAccepted: true
+                  marketingConsent: false
+                  source: CALCULATOR
+              invited:
+                summary: Registro desde una invitación
+                value:
+                  firstName: Sarah
+                  lastName: Mitchell
+                  email: sarah.mitchell@northstar-dc.com
+                  companyName: Northstar Data Centers
+                  position: VP of Infrastructure
+                  consentAccepted: true
+                  marketingConsent: true
+                  source: OUTREACH
+                  invitationToken: 650c17ec-8f4f-4ddf-a50d-f0e6e165b1ca
+      responses:
+        '201':
+          description: Evaluación creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEvaluationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          description: Conflicto con el estado o la invitación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    get:
+      tags: [Evaluations]
+      summary: Consultar progreso de una evaluación
+      operationId: getEvaluation
+      security:
+        - evaluationToken: []
+      responses:
+        '200':
+          description: Evaluación encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}/calculator:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    put:
+      tags: [Calculator]
+      summary: Calcular y guardar KPIs de capacidad
+      operationId: saveCalculatorResult
+      security:
+        - evaluationToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculatorRequest'
+            example:
+              totalCapacityMw: 20
+              productiveCapacityMw: 13
+              monthlyCostPerKw: 90
+              currency: USD
+      responses:
+        '200':
+          description: KPIs calculados y guardados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculatorResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: La evaluación no permite esta transición
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/benchmark/questions:
+    get:
+      tags: [Benchmark]
+      summary: Listar preguntas activas del benchmark
+      operationId: listBenchmarkQuestions
+      parameters:
+        - name: version
+          in: query
+          required: false
+          description: Versión del cuestionario. Si se omite, devuelve la activa.
+          schema:
+            type: string
+            example: v1
+      responses:
+        '200':
+          description: Catálogo de preguntas
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 12
+                maxItems: 12
+                items:
+                  $ref: '#/components/schemas/BenchmarkQuestion'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}/benchmark:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    put:
+      tags: [Benchmark]
+      summary: Enviar respuestas y completar el benchmark
+      operationId: submitBenchmark
+      description: |
+        Valida las 12 respuestas, calcula puntaje total, puntajes por categoría,
+        nivel de madurez y percentil. Al completarse, dispara automáticamente
+        la generación del PDF.
+      security:
+        - evaluationToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BenchmarkSubmissionRequest'
+      responses:
+        '200':
+          description: Benchmark procesado y generación del reporte iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BenchmarkSubmissionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Estado incompatible o benchmark ya completado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}/results:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    get:
+      tags: [Benchmark]
+      summary: Consultar resultados consolidados
+      operationId: getEvaluationResults
+      security:
+        - evaluationToken: []
+      responses:
+        '200':
+          description: Resultado consolidado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResultsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El benchmark todavía no está completo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}/report:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    get:
+      tags: [Reports]
+      summary: Consultar estado y enlace temporal del PDF
+      operationId: getReport
+      security:
+        - evaluationToken: []
+      responses:
+        '200':
+          description: Estado del reporte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/evaluations/{evaluationId}/report/retry:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    post:
+      tags: [Reports]
+      summary: Reintentar la generación de un PDF fallido
+      operationId: retryReportGeneration
+      security:
+        - evaluationToken: []
+      responses:
+        '202':
+          description: Reintento aceptado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El reporte no está en estado REPORT_FAILED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/invitations/{invitationToken}:
+    parameters:
+      - name: invitationToken
+        in: path
+        required: true
+        description: Token único de la invitación
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Invitations]
+      summary: Resolver invitación y registrar visita
+      operationId: resolveInvitation
+      description: |
+        Valida la invitación, actualiza el tracking a VISITED cuando corresponde
+        y devuelve datos permitidos para precargar el registro.
+      responses:
+        '200':
+          description: Invitación válida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationResolutionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Invitación expirada o no utilizable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/auth/login:
+    post:
+      tags: [Admin Auth]
+      summary: Iniciar sesión administrativa
+      operationId: adminLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+      responses:
+        '200':
+          description: Autenticación correcta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLoginResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/contact-imports:
+    post:
+      tags: [Admin Contacts]
+      summary: Importar contactos desde CSV
+      operationId: importContacts
+      security:
+        - adminBearer: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, file]
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                  maxLength: 120
+                  example: Q3 2026 Prospects
+                file:
+                  type: string
+                  format: binary
+                  description: CSV con first_name,last_name,email,company,position
+      responses:
+        '201':
+          description: Archivo procesado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactImportResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: Archivo demasiado grande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/contact-imports/{importId}:
+    parameters:
+      - name: importId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Admin Contacts]
+      summary: Consultar resultado de una importación
+      operationId: getContactImport
+      security:
+        - adminBearer: []
+      responses:
+        '200':
+          description: Importación encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactImportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/contacts:
+    get:
+      tags: [Admin Contacts]
+      summary: Listar contactos de outreach
+      operationId: listContacts
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InvitationStatus'
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 120
+      responses:
+        '200':
+          description: Página de contactos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/campaigns:
+    post:
+      tags: [Admin Campaigns]
+      summary: Crear campaña
+      operationId: createCampaign
+      security:
+        - adminBearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaña creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    get:
+      tags: [Admin Campaigns]
+      summary: Listar campañas
+      operationId: listCampaigns
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/CampaignStatus'
+      responses:
+        '200':
+          description: Página de campañas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/campaigns/{campaignId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Admin Campaigns]
+      summary: Consultar detalle de campaña
+      operationId: getCampaign
+      security:
+        - adminBearer: []
+      responses:
+        '200':
+          description: Campaña encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/campaigns/{campaignId}/send:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    post:
+      tags: [Admin Campaigns]
+      summary: Enviar o encolar invitaciones de una campaña
+      operationId: sendCampaign
+      security:
+        - adminBearer: []
+      responses:
+        '202':
+          description: Envío aceptado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CampaignResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Campaña no enviable o ya procesada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/dashboard/summary:
+    get:
+      tags: [Admin Dashboard]
+      summary: Consultar resumen administrativo
+      operationId: getDashboardSummary
+      security:
+        - adminBearer: []
+      parameters:
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: campaignId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Métricas acumuladas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/operators:
+    get:
+      tags: [Admin Operators]
+      summary: Listar operadores y resultados
+      operationId: listOperators
+      security:
+        - adminBearer: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: state
+          in: query
+          schema:
+            $ref: '#/components/schemas/EvaluationState'
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 120
+      responses:
+        '200':
+          description: Página de operadores
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperatorPageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/operators/{operatorId}:
+    parameters:
+      - name: operatorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [Admin Operators]
+      summary: Consultar detalle de un operador
+      operationId: getOperatorDetail
+      security:
+        - adminBearer: []
+      responses:
+        '200':
+          description: Operador encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOperatorDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    evaluationToken:
+      type: apiKey
+      in: header
+      name: X-Evaluation-Token
+      description: Token opaco generado al crear la evaluación.
+    adminBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    EvaluationId:
+      name: evaluationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    ValidationError:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            timestamp: '2026-07-23T20:10:00Z'
+            status: 400
+            code: VALIDATION_ERROR
+            message: Uno o más campos son inválidos.
+            path: /api/v1/evaluations/2f565fd3-f456-42e8-b9cb-552647d00655/calculator
+            traceId: 7f9f827a2301
+            fieldErrors:
+              - field: productiveCapacityMw
+                message: No puede superar totalCapacityMw.
+    Unauthorized:
+      description: Credencial ausente, inválida o expirada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalError:
+      description: Error interno no esperado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    EvaluationSource:
+      type: string
+      enum: [CALCULATOR, BENCHMARK, OUTREACH]
+    EvaluationState:
+      type: string
+      enum:
+        - STARTED
+        - CALCULATOR_COMPLETED
+        - BENCHMARK_COMPLETED
+        - REPORT_GENERATING
+        - REPORT_COMPLETED
+        - REPORT_FAILED
+    MaturityLevel:
+      type: string
+      enum: [INITIAL, DEVELOPING, MANAGED, ADVANCED, OPTIMIZED]
+    BenchmarkCategory:
+      type: string
+      enum:
+        - CAPACITY_VISIBILITY
+        - PHYSICAL_OPERATIONAL_COORDINATION
+        - AUTOMATION
+        - GOVERNANCE_DECISION_MAKING
+    CurrencyCode:
+      type: string
+      pattern: '^[A-Z]{3}$'
+      example: USD
+    ReportStatus:
+      type: string
+      enum: [NOT_REQUESTED, REPORT_GENERATING, REPORT_COMPLETED, REPORT_FAILED]
+    InvitationStatus:
+      type: string
+      enum: [UPLOADED, SENT, VISITED, STARTED, COMPLETED, FAILED]
+    CampaignStatus:
+      type: string
+      enum: [DRAFT, READY, SENDING, ACTIVE, COMPLETED, FAILED]
+
+    CreateEvaluationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - firstName
+        - lastName
+        - email
+        - companyName
+        - consentAccepted
+        - source
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 80
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        companyName:
+          type: string
+          minLength: 2
+          maxLength: 160
+        position:
+          type: [string, 'null']
+          maxLength: 120
+        country:
+          type: [string, 'null']
+          maxLength: 100
+        consentAccepted:
+          type: boolean
+          const: true
+        marketingConsent:
+          type: boolean
+          default: false
+        source:
+          $ref: '#/components/schemas/EvaluationSource'
+        invitationToken:
+          type: [string, 'null']
+          format: uuid
+
+    CreateEvaluationResponse:
+      type: object
+      required: [operatorId, evaluationId, evaluationToken, state, createdAt]
+      properties:
+        operatorId:
+          type: string
+          format: uuid
+        evaluationId:
+          type: string
+          format: uuid
+        evaluationToken:
+          type: string
+          minLength: 32
+          description: Solo se devuelve al crear la evaluación.
+        state:
+          $ref: '#/components/schemas/EvaluationState'
+        createdAt:
+          type: string
+          format: date-time
+
+    EvaluationResponse:
+      type: object
+      required: [evaluationId, operator, state, progress, createdAt, updatedAt]
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        operator:
+          $ref: '#/components/schemas/Operator'
+        state:
+          $ref: '#/components/schemas/EvaluationState'
+        progress:
+          $ref: '#/components/schemas/EvaluationProgress'
+        calculator:
+          oneOf:
+            - $ref: '#/components/schemas/CalculatorResult'
+            - type: 'null'
+        report:
+          oneOf:
+            - $ref: '#/components/schemas/ReportResponse'
+            - type: 'null'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    EvaluationProgress:
+      type: object
+      required: [calculatorCompleted, benchmarkCompleted, reportCompleted]
+      properties:
+        calculatorCompleted:
+          type: boolean
+        benchmarkCompleted:
+          type: boolean
+        reportCompleted:
+          type: boolean
+
+    Operator:
+      type: object
+      required: [id, firstName, lastName, email, companyName]
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        companyName:
+          type: string
+        position:
+          type: [string, 'null']
+        country:
+          type: [string, 'null']
+
+    CalculatorRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - totalCapacityMw
+        - productiveCapacityMw
+        - monthlyCostPerKw
+        - currency
+      properties:
+        totalCapacityMw:
+          type: number
+          format: double
+          exclusiveMinimum: 0
+          maximum: 100000
+        productiveCapacityMw:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100000
+          description: Debe ser menor o igual que totalCapacityMw.
+        monthlyCostPerKw:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1000000
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+
+    CalculatorResult:
+      type: object
+      required:
+        - totalCapacityMw
+        - productiveCapacityMw
+        - nonProductiveCapacityMw
+        - utilizationPercentage
+        - nonProductivePercentage
+        - monthlyCostPerKw
+        - estimatedAnnualCost
+        - currency
+        - calculatedAt
+      properties:
+        totalCapacityMw:
+          type: number
+          format: double
+        productiveCapacityMw:
+          type: number
+          format: double
+        nonProductiveCapacityMw:
+          type: number
+          format: double
+        utilizationPercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        nonProductivePercentage:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        monthlyCostPerKw:
+          type: number
+          format: double
+        estimatedAnnualCost:
+          type: number
+          format: double
+        currency:
+          $ref: '#/components/schemas/CurrencyCode'
+        calculatedAt:
+          type: string
+          format: date-time
+
+    BenchmarkQuestion:
+      type: object
+      required: [id, version, category, order, text, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        version:
+          type: string
+          example: v1
+        category:
+          $ref: '#/components/schemas/BenchmarkCategory'
+        order:
+          type: integer
+          minimum: 1
+          maximum: 12
+        text:
+          type: string
+          minLength: 10
+          maxLength: 500
+        active:
+          type: boolean
+        scale:
+          type: array
+          minItems: 5
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/BenchmarkScaleOption'
+
+    BenchmarkScaleOption:
+      type: object
+      required: [value, label]
+      properties:
+        value:
+          type: integer
+          minimum: 1
+          maximum: 5
+        label:
+          type: string
+          enum: [INEXISTENT, INITIAL, DEFINED, MANAGED, OPTIMIZED]
+
+    BenchmarkSubmissionRequest:
+      type: object
+      additionalProperties: false
+      required: [questionnaireVersion, answers]
+      properties:
+        questionnaireVersion:
+          type: string
+          example: v1
+        answers:
+          type: array
+          minItems: 12
+          maxItems: 12
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/BenchmarkAnswerInput'
+
+    BenchmarkAnswerInput:
+      type: object
+      additionalProperties: false
+      required: [questionId, value]
+      properties:
+        questionId:
+          type: string
+          format: uuid
+        value:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    BenchmarkSubmissionResponse:
+      type: object
+      required:
+        - evaluationId
+        - benchmark
+        - recommendations
+        - report
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        benchmark:
+          $ref: '#/components/schemas/BenchmarkResult'
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        report:
+          $ref: '#/components/schemas/ReportResponse'
+
+    BenchmarkResult:
+      type: object
+      required:
+        - totalScore
+        - maturityLevel
+        - percentile
+        - percentileDisclaimer
+        - categoryScores
+        - completedAt
+      properties:
+        totalScore:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          example: 72
+        maturityLevel:
+          $ref: '#/components/schemas/MaturityLevel'
+        percentile:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+          example: 68
+        percentileDisclaimer:
+          type: string
+          example: Comparación realizada con datos de demostración del ambiente de staging.
+        categoryScores:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            $ref: '#/components/schemas/CategoryScore'
+        completedAt:
+          type: string
+          format: date-time
+
+    CategoryScore:
+      type: object
+      required: [category, score]
+      properties:
+        category:
+          $ref: '#/components/schemas/BenchmarkCategory'
+        score:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+
+    Recommendation:
+      type: object
+      required: [category, title, description, priority]
+      properties:
+        category:
+          $ref: '#/components/schemas/BenchmarkCategory'
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [HIGH, MEDIUM, LOW]
+
+    EvaluationResultsResponse:
+      type: object
+      required:
+        - evaluationId
+        - operator
+        - calculator
+        - benchmark
+        - headline
+        - strengths
+        - improvementAreas
+        - recommendations
+        - report
+      properties:
+        evaluationId:
+          type: string
+          format: uuid
+        operator:
+          $ref: '#/components/schemas/Operator'
+        calculator:
+          $ref: '#/components/schemas/CalculatorResult'
+        benchmark:
+          $ref: '#/components/schemas/BenchmarkResult'
+        headline:
+          type: string
+          example: Northstar Data Centers alcanzó un nivel Gestionado.
+        strengths:
+          type: array
+          items:
+            type: string
+        improvementAreas:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recommendation'
+        report:
+          $ref: '#/components/schemas/ReportResponse'
+
+    ReportResponse:
+      type: object
+      required: [status]
+      properties:
+        reportId:
+          type: [string, 'null']
+          format: uuid
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        fileName:
+          type: [string, 'null']
+          example: Northstar_Data_Centers_Maturity_Report.pdf
+        downloadUrl:
+          type: [string, 'null']
+          format: uri
+          description: URL temporal; no debe almacenarse como URL pública permanente.
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+        generatedAt:
+          type: [string, 'null']
+          format: date-time
+        failureReason:
+          type: [string, 'null']
+
+    InvitationResolutionResponse:
+      type: object
+      required: [valid, status, email, companyName]
+      properties:
+        valid:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/InvitationStatus'
+        email:
+          type: string
+          format: email
+        firstName:
+          type: [string, 'null']
+        lastName:
+          type: [string, 'null']
+        companyName:
+          type: string
+        position:
+          type: [string, 'null']
+        campaignName:
+          type: string
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+
+    AdminLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+
+    AdminLoginResponse:
+      type: object
+      required: [accessToken, tokenType, expiresInSeconds, admin]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          const: Bearer
+        expiresInSeconds:
+          type: integer
+          minimum: 60
+        admin:
+          $ref: '#/components/schemas/AdminSummary'
+
+    AdminSummary:
+      type: object
+      required: [id, name, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+
+    ContactImportResponse:
+      type: object
+      required:
+        - importId
+        - name
+        - status
+        - totalRows
+        - validContacts
+        - duplicates
+        - invalidRows
+        - issues
+        - createdAt
+      properties:
+        importId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          type: string
+          enum: [PROCESSING, COMPLETED, FAILED]
+        totalRows:
+          type: integer
+          minimum: 0
+        validContacts:
+          type: integer
+          minimum: 0
+        duplicates:
+          type: integer
+          minimum: 0
+        invalidRows:
+          type: integer
+          minimum: 0
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportIssue'
+        createdAt:
+          type: string
+          format: date-time
+
+    ImportIssue:
+      type: object
+      required: [row, code, message]
+      properties:
+        row:
+          type: integer
+          minimum: 1
+        email:
+          type: [string, 'null']
+          format: email
+        code:
+          type: string
+          enum:
+            - MISSING_COLUMN
+            - INVALID_EMAIL
+            - DUPLICATE_IN_FILE
+            - EXISTING_CONTACT
+            - INVALID_VALUE
+        message:
+          type: string
+
+    ContactSummary:
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - email
+        - companyName
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        companyName:
+          type: string
+        position:
+          type: [string, 'null']
+        status:
+          $ref: '#/components/schemas/InvitationStatus'
+        campaignId:
+          type: [string, 'null']
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+
+    ContactPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContactSummary'
+
+    CreateCampaignRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - subject
+        - message
+        - callToActionText
+        - contactImportId
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 160
+        description:
+          type: [string, 'null']
+          maxLength: 500
+        subject:
+          type: string
+          minLength: 3
+          maxLength: 180
+        message:
+          type: string
+          minLength: 10
+          maxLength: 5000
+        callToActionText:
+          type: string
+          minLength: 2
+          maxLength: 80
+          example: Comenzar evaluación
+        contactImportId:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: [string, 'null']
+          format: date-time
+        timezone:
+          type: [string, 'null']
+          example: America/Lima
+
+    CampaignResponse:
+      type: object
+      required:
+        - id
+        - name
+        - status
+        - subject
+        - recipientCount
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/CampaignStatus'
+        subject:
+          type: string
+        recipientCount:
+          type: integer
+          minimum: 0
+        scheduledAt:
+          type: [string, 'null']
+          format: date-time
+        sentAt:
+          type: [string, 'null']
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CampaignDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/CampaignResponse'
+        - type: object
+          required: [metrics, recentContacts]
+          properties:
+            metrics:
+              $ref: '#/components/schemas/CampaignMetrics'
+            recentContacts:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContactSummary'
+
+    CampaignMetrics:
+      type: object
+      required:
+        - contacts
+        - sent
+        - failed
+        - visited
+        - started
+        - completed
+        - completionRate
+      properties:
+        contacts:
+          type: integer
+          minimum: 0
+        sent:
+          type: integer
+          minimum: 0
+        failed:
+          type: integer
+          minimum: 0
+        visited:
+          type: integer
+          minimum: 0
+        started:
+          type: integer
+          minimum: 0
+        completed:
+          type: integer
+          minimum: 0
+        completionRate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+
+    CampaignPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/CampaignResponse'
+
+    DashboardSummaryResponse:
+      type: object
+      required:
+        - contactsLoaded
+        - invitationsSent
+        - linksVisited
+        - evaluationsStarted
+        - evaluationsCompleted
+        - completionRate
+        - averageBenchmarkScore
+        - averageUtilization
+        - accumulatedNonProductiveCapacityMw
+        - accumulatedEstimatedAnnualCost
+        - generatedReports
+        - maturityDistribution
+        - categoryAverages
+      properties:
+        contactsLoaded:
+          type: integer
+          minimum: 0
+        invitationsSent:
+          type: integer
+          minimum: 0
+        linksVisited:
+          type: integer
+          minimum: 0
+        evaluationsStarted:
+          type: integer
+          minimum: 0
+        evaluationsCompleted:
+          type: integer
+          minimum: 0
+        completionRate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        averageBenchmarkScore:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        averageUtilization:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 100
+        accumulatedNonProductiveCapacityMw:
+          type: number
+          format: double
+          minimum: 0
+        accumulatedEstimatedAnnualCost:
+          type: number
+          format: double
+          minimum: 0
+        generatedReports:
+          type: integer
+          minimum: 0
+        maturityDistribution:
+          type: array
+          items:
+            $ref: '#/components/schemas/MaturityDistributionItem'
+        categoryAverages:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryScore'
+
+    MaturityDistributionItem:
+      type: object
+      required: [level, count]
+      properties:
+        level:
+          $ref: '#/components/schemas/MaturityLevel'
+        count:
+          type: integer
+          minimum: 0
+
+    OperatorSummary:
+      type: object
+      required:
+        - operatorId
+        - fullName
+        - email
+        - companyName
+        - evaluationId
+        - state
+        - createdAt
+      properties:
+        operatorId:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        companyName:
+          type: string
+        evaluationId:
+          type: string
+          format: uuid
+        state:
+          $ref: '#/components/schemas/EvaluationState'
+        benchmarkScore:
+          type: [number, 'null']
+          format: double
+        maturityLevel:
+          oneOf:
+            - $ref: '#/components/schemas/MaturityLevel'
+            - type: 'null'
+        completedAt:
+          type: [string, 'null']
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    OperatorPageResponse:
+      allOf:
+        - $ref: '#/components/schemas/PageMetadata'
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/OperatorSummary'
+
+    AdminOperatorDetailResponse:
+      type: object
+      required:
+        - operator
+        - evaluation
+      properties:
+        operator:
+          $ref: '#/components/schemas/Operator'
+        evaluation:
+          $ref: '#/components/schemas/EvaluationResponse'
+        results:
+          oneOf:
+            - $ref: '#/components/schemas/EvaluationResultsResponse'
+            - type: 'null'
+        invitation:
+          oneOf:
+            - $ref: '#/components/schemas/ContactSummary'
+            - type: 'null'
+
+    PageMetadata:
+      type: object
+      required: [page, size, totalElements, totalPages]
+      properties:
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+        totalElements:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - timestamp
+        - status
+        - code
+        - message
+        - path
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+        path:
+          type: string
+        traceId:
+          type: [string, 'null']
+        fieldErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'

@@ -44,4 +44,21 @@ public class GlobalExceptionHandler {
                 null,
                 fields));
     }
+
+    // ESTE ES EL MÉTODO NUEVO que agregamos:
+    // captura los errores de las reglas de dominio (Email inválido, source
+    // inválido, etc.) y los convierte en un 400 prolijo en vez de un 500.
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<ApiErrorResponse> handleIllegalArgument(
+            IllegalArgumentException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_REQUEST",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
 }

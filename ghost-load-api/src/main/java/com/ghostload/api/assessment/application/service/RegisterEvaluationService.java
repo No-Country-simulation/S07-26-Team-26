@@ -10,10 +10,9 @@ import com.ghostload.api.assessment.domain.model.Evaluation;
 import com.ghostload.api.assessment.domain.model.Operator;
 import org.springframework.stereotype.Service;
 
-// @Service: esta SÍ es una anotación de Spring, pero fijate que solo está
-// en el servicio de aplicación, no en el dominio (Operator, Evaluation, Email
-// no tienen ninguna anotación de Spring). Esto es a propósito: el dominio
-// tiene que poder probarse sin levantar Spring para nada.
+
+// Único cambio: el token se genera ANTES de crear la Evaluation, para que
+// quede guardado junto con ella (antes se generaba después y se perdía).
 @Service
 public class RegisterEvaluationService implements RegisterEvaluationUseCase {
 
@@ -22,9 +21,6 @@ public class RegisterEvaluationService implements RegisterEvaluationUseCase {
     private final SaveEvaluationPort saveEvaluationPort;
     private final GenerateEvaluationTokenPort generateEvaluationTokenPort;
 
-    // Todas las dependencias son PUERTOS (interfaces), nunca clases concretas
-    // de JPA o de un proveedor específico. Spring va a inyectar acá la
-    // implementación real (el adaptador) automáticamente.
     public RegisterEvaluationService(LoadOperatorPort loadOperatorPort,
                                       SaveOperatorPort saveOperatorPort,
                                       SaveEvaluationPort saveEvaluationPort,
@@ -37,11 +33,8 @@ public class RegisterEvaluationService implements RegisterEvaluationUseCase {
 
     @Override
     public RegisterEvaluationResult register(RegisterEvaluationCommand command) {
-        Email email = new Email(command.email()); // acá ya se valida el formato
+        Email email = new Email(command.email());
 
-        // "Registra o reutiliza un operador por correo" -- según el openapi.yaml.
-        // Si ya existe un operador con ese email, lo reutilizamos en vez de
-        // crear uno duplicado.
         Operator operator = loadOperatorPort.findByEmail(email)
                 .orElseGet(() -> Operator.register(
                         command.firstName(),
@@ -54,10 +47,9 @@ public class RegisterEvaluationService implements RegisterEvaluationUseCase {
 
         saveOperatorPort.save(operator);
 
-        Evaluation evaluation = Evaluation.start(operator.id(), command.source());
-        saveEvaluationPort.save(evaluation);
-
         String token = generateEvaluationTokenPort.generate();
+        Evaluation evaluation = Evaluation.start(operator.id(), command.source(), token);
+        saveEvaluationPort.save(evaluation);
 
         return new RegisterEvaluationResult(
                 operator.id().value(),

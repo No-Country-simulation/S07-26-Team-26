@@ -1,27 +1,28 @@
 package com.ghostload.api.assessment.adapter.out.persistence;
 
-import com.ghostload.api.assessment.application.port.out.LoadOperatorPort;
-import com.ghostload.api.assessment.application.port.out.SaveEvaluationPort;
-import com.ghostload.api.assessment.application.port.out.SaveOperatorPort;
+import com.ghostload.api.assessment.application.port.out.*;
 import com.ghostload.api.assessment.domain.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-// Este adaptador implementa TRES puertos de salida a la vez, porque los tres
-// hablan de la misma tecnología (JPA/PostgreSQL). Acá es donde se traduce
-// entre el mundo del dominio (Operator, Evaluation) y el mundo de JPA
-// (OperatorJpaEntity, EvaluationJpaEntity). Esta traducción se llama "mapeo".
+// Se agregaron: LoadEvaluationPort y SaveCalculatorResultPort, más el
+// CalculatorResultJpaRepository como nueva dependencia.
 @Component
-public class AssessmentPersistenceAdapter implements LoadOperatorPort, SaveOperatorPort, SaveEvaluationPort {
+public class AssessmentPersistenceAdapter implements
+        LoadOperatorPort, SaveOperatorPort, SaveEvaluationPort,
+        LoadEvaluationPort, SaveCalculatorResultPort {
 
     private final OperatorJpaRepository operatorJpaRepository;
     private final EvaluationJpaRepository evaluationJpaRepository;
+    private final CalculatorResultJpaRepository calculatorResultJpaRepository;
 
     public AssessmentPersistenceAdapter(OperatorJpaRepository operatorJpaRepository,
-                                         EvaluationJpaRepository evaluationJpaRepository) {
+                                         EvaluationJpaRepository evaluationJpaRepository,
+                                         CalculatorResultJpaRepository calculatorResultJpaRepository) {
         this.operatorJpaRepository = operatorJpaRepository;
         this.evaluationJpaRepository = evaluationJpaRepository;
+        this.calculatorResultJpaRepository = calculatorResultJpaRepository;
     }
 
     @Override
@@ -59,9 +60,41 @@ public class AssessmentPersistenceAdapter implements LoadOperatorPort, SaveOpera
                 evaluation.operatorId().value(),
                 evaluation.state().name(),
                 evaluation.source().name(),
+                evaluation.evaluationToken(),
                 evaluation.createdAt(),
                 evaluation.updatedAt()
         );
         evaluationJpaRepository.save(entity);
+    }
+
+    @Override
+    public Optional<Evaluation> findById(EvaluationId id) {
+        return evaluationJpaRepository.findById(id.value())
+                .map(entity -> Evaluation.reconstruct(
+                        EvaluationId.of(entity.getId()),
+                        OperatorId.of(entity.getOperatorId()),
+                        EvaluationState.valueOf(entity.getState()),
+                        EvaluationSource.valueOf(entity.getSource()),
+                        entity.getEvaluationToken(),
+                        entity.getCreatedAt(),
+                        entity.getUpdatedAt()
+                ));
+    }
+
+    @Override
+    public void save(EvaluationId evaluationId, CalculatorResult result) {
+        var entity = new CalculatorResultJpaEntity(
+                evaluationId.value(),
+                result.totalCapacityMw(),
+                result.productiveCapacityMw(),
+                result.nonProductiveCapacityMw(),
+                result.utilizationPercentage(),
+                result.nonProductivePercentage(),
+                result.monthlyCostPerKw(),
+                result.estimatedAnnualCost(),
+                result.currency(),
+                result.calculatedAt()
+        );
+        calculatorResultJpaRepository.save(entity);
     }
 }

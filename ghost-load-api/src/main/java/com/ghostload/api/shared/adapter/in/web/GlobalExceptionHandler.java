@@ -1,6 +1,8 @@
 package com.ghostload.api.shared.adapter.in.web;
 
 import com.ghostload.api.administration.domain.exception.InvalidAdminCredentialsException;
+import com.ghostload.api.assessment.domain.exception.InvalidEvaluationStateException;
+import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.Instant;
 import java.util.List;
 
+// Se agregaron 2 manejadores nuevos: para token inválido (401) y para
+// transición de estado inválida (409), ambos definidos en el openapi.yaml.
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -45,9 +49,6 @@ public class GlobalExceptionHandler {
                 fields));
     }
 
-    // ESTE ES EL MÉTODO NUEVO que agregamos:
-    // captura los errores de las reglas de dominio (Email inválido, source
-    // inválido, etc.) y los convierte en un 400 prolijo en vez de un 500.
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<ApiErrorResponse> handleIllegalArgument(
             IllegalArgumentException exception,
@@ -56,6 +57,36 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "INVALID_REQUEST",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    // NUEVO: token de evaluación inválido -> 401
+    @ExceptionHandler(InvalidEvaluationTokenException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidEvaluationToken(
+            InvalidEvaluationTokenException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.UNAUTHORIZED.value(),
+                "INVALID_EVALUATION_TOKEN",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    // NUEVO: transición de estado inválida -> 409, tal como pide el openapi.yaml
+    @ExceptionHandler(InvalidEvaluationStateException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidEvaluationState(
+            InvalidEvaluationStateException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "INVALID_STATE_TRANSITION",
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

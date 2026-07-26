@@ -61,7 +61,10 @@ public class JwtProvider implements GenerateAdminTokenPort {
     }
 
     private Claims parseClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build()
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .setClock(() -> Date.from(clock.instant()))
+                .build()
                 .parseClaimsJws(token).getBody();
     }
 }

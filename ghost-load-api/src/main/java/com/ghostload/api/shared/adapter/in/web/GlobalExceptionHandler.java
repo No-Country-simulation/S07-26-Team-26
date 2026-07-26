@@ -3,12 +3,15 @@ package com.ghostload.api.shared.adapter.in.web;
 import com.ghostload.api.administration.domain.exception.InvalidAdminCredentialsException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationStateException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
+import com.ghostload.api.outreach.domain.exception.ContactFileTooLargeException;
+import com.ghostload.api.outreach.domain.exception.InvalidContactFileException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.time.Instant;
 import java.util.List;
@@ -91,5 +94,37 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 null,
                 List.of()));
+    }
+
+    @ExceptionHandler(InvalidContactFileException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidContactFile(
+            InvalidContactFileException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_CONTACT_FILE",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler({
+            ContactFileTooLargeException.class,
+            MaxUploadSizeExceededException.class
+    })
+    ResponseEntity<ApiErrorResponse> handleContactFileTooLarge(
+            Exception exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ApiErrorResponse(
+                        Instant.now(),
+                        HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                        "CONTACT_FILE_TOO_LARGE",
+                        "El archivo supera el máximo permitido de 5 MB.",
+                        request.getRequestURI(),
+                        null,
+                        List.of()));
     }
 }

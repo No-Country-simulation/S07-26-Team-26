@@ -408,7 +408,9 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: CSV con first_name,last_name,email,company,position
+                  description: |
+                    CSV UTF-8 de hasta 5 MB y 5000 filas con las columnas
+                    first_name,last_name,email,company,position.
       responses:
         '201':
           description: Archivo procesado

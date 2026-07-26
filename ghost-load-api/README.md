@@ -1005,3 +1005,42 @@ La arquitectura debe ayudar a desarrollar y comprender el sistema.
 Si una abstracción, interfaz o capa no aporta una separación útil, no debe agregarse solamente para que el proyecto parezca más complejo.
 
 El objetivo es aprender una forma profesional de trabajar mientras se entrega un MVP funcional dentro del tiempo disponible.
+
+---
+
+# Importación administrativa de contactos
+
+La importación inicial de outreach acepta archivos CSV UTF-8 con un máximo de
+5 MB y 5000 filas.
+
+Encabezados obligatorios:
+
+```csv
+first_name,last_name,email,company,position
+```
+
+Ejemplo:
+
+```csv
+first_name,last_name,email,company,position
+Ana,Torres,ana@empresa.com,Empresa SAC,Gerente TI
+Luis,Perez,luis@empresa.com,Data Center SA,Operador
+```
+
+También se incluye un archivo listo para probar en:
+
+```text
+docs/examples/contact-import-example.csv
+```
+
+El endpoint requiere el JWT obtenido mediante el login administrativo:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/v1/admin/contact-imports" `
+  -H "Authorization: Bearer TU_TOKEN_ADMIN" `
+  -F "name=Prospectos Q3 2026" `
+  -F "file=@contactos.csv;type=text/csv"
+```
+
+La respuesta informa contactos válidos, duplicados y filas inválidas. En esta
+primera fase la importación es síncrona y no envía correos.

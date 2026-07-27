@@ -32,4 +32,4 @@ La siguiente imagen muestra la funcionalidad de descarga de reportes disponible 
 
 La siguiente imagen muestra la arquitectura general del sistema.
 
-![Arquitectura](Arquiectura%2022-7.png)
+![Arquitectura](Arquitectura_23-7)

@@ -57,4 +57,36 @@ public class ContactJpaEntity {
         this.position = position;
         this.createdAt = createdAt;
     }
+
+    UUID id() {
+        return id;
+    }
+
+    UUID contactImportId() {
+        return contactImportId;
+    }
+
+    String firstName() {
+        return firstName;
+    }
+
+    String lastName() {
+        return lastName;
+    }
+
+    String email() {
+        return email;
+    }
+
+    String companyName() {
+        return companyName;
+    }
+
+    String position() {
+        return position;
+    }
+
+    Instant createdAt() {
+        return createdAt;
+    }
 }

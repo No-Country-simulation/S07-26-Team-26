@@ -4,6 +4,7 @@ import com.ghostload.api.administration.domain.exception.InvalidAdminCredentials
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationStateException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
 import com.ghostload.api.outreach.domain.exception.ContactFileTooLargeException;
+import com.ghostload.api.outreach.domain.exception.InvalidCampaignException;
 import com.ghostload.api.outreach.domain.exception.InvalidContactFileException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -104,6 +105,20 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "INVALID_CONTACT_FILE",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvalidCampaignException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidCampaign(
+            InvalidCampaignException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.badRequest().body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_CAMPAIGN",
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

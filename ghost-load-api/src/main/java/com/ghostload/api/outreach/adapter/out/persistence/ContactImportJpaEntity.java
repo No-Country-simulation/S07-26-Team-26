@@ -61,4 +61,36 @@ public class ContactImportJpaEntity {
         this.invalidRows = invalidRows;
         this.createdAt = createdAt;
     }
+
+    UUID id() {
+        return id;
+    }
+
+    String name() {
+        return name;
+    }
+
+    ContactImportStatus status() {
+        return status;
+    }
+
+    int totalRows() {
+        return totalRows;
+    }
+
+    int validContacts() {
+        return validContacts;
+    }
+
+    int duplicates() {
+        return duplicates;
+    }
+
+    int invalidRows() {
+        return invalidRows;
+    }
+
+    Instant createdAt() {
+        return createdAt;
+    }
 }

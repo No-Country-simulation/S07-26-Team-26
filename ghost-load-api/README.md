@@ -1044,3 +1044,28 @@ curl.exe -X POST "http://localhost:8080/api/v1/admin/contact-imports" `
 
 La respuesta informa contactos válidos, duplicados y filas inválidas. En esta
 primera fase la importación es síncrona y no envía correos.
+
+---
+
+# Creación administrativa de campañas
+
+Una campaña se crea usando los contactos válidos de una importación completada.
+El endpoint requiere el JWT administrativo:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/v1/admin/campaigns" `
+  -H "Authorization: Bearer TU_TOKEN_ADMIN" `
+  -H "Content-Type: application/json" `
+  -d '{
+    "name": "Benchmark julio",
+    "subject": "Conoce la madurez de tu data center",
+    "message": "Completa el benchmark y recibe tu reporte personalizado.",
+    "callToActionText": "Comenzar evaluación",
+    "contactImportId": "UUID_DE_LA_IMPORTACION",
+    "timezone": "America/Lima"
+  }'
+```
+
+Al crearla, la campaña queda en estado `READY` y cada contacto recibe una
+invitación interna en estado `UPLOADED` con un token único. Este endpoint no
+envía correos; el envío se implementará como un caso de uso separado.

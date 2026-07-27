@@ -11,11 +11,9 @@ import java.util.UUID;
 interface SpringDataContactRepository extends JpaRepository<ContactJpaEntity, UUID> {
 
     @Query("""
-            select lower(contact.email)
+            select contact
             from ContactJpaEntity contact
             where lower(contact.email) in :emails
             """)
-    List<String> findExistingNormalizedEmails(@Param("emails") Set<String> emails);
-
-    List<ContactJpaEntity> findAllByContactImportIdOrderByCreatedAtAsc(UUID contactImportId);
+    List<ContactJpaEntity> findExistingContacts(@Param("emails") Set<String> emails);
 }

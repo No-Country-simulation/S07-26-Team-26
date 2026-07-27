@@ -32,7 +32,7 @@ versionarse.
 En Windows:
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 La aplicación queda disponible en `http://localhost:8080`.
@@ -40,7 +40,7 @@ La aplicación queda disponible en `http://localhost:8080`.
 Para ejecutar las pruebas:
 
 ```powershell
-.\mvnw.cmd test
+mvn test
 ```
 
 Las credenciales no deben guardarse en los archivos versionados.
@@ -973,13 +973,13 @@ Cada estructura aparecerá cuando una funcionalidad real la necesite.
 En Windows:
 
 ```powershell
-.\mvnw.cmd test
+mvn test
 ```
 
 En Linux o macOS:
 
 ```bash
-./mvnw test
+mvn test
 ```
 
 ## Ejecutar la aplicación
@@ -987,13 +987,13 @@ En Linux o macOS:
 En Windows:
 
 ```powershell
-.\mvnw.cmd spring-boot:run
+mvn spring-boot:run
 ```
 
 En Linux o macOS:
 
 ```bash
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
 
 ---
@@ -1042,8 +1042,22 @@ curl.exe -X POST "http://localhost:8080/api/v1/admin/contact-imports" `
   -F "file=@contactos.csv;type=text/csv"
 ```
 
-La respuesta informa contactos válidos, duplicados y filas inválidas. En esta
-primera fase la importación es síncrona y no envía correos.
+La respuesta distingue contactos nuevos, contactos existentes reutilizados,
+filas duplicadas dentro del mismo CSV y filas inválidas:
+
+```json
+{
+  "validContacts": 3,
+  "newContacts": 2,
+  "existingContacts": 1,
+  "duplicates": 1,
+  "invalidRows": 0
+}
+```
+
+Un correo que ya existe no se descarta: se asocia a la nueva importación y
+puede participar en una campaña nueva. Solamente se rechazan sus repeticiones
+dentro del mismo archivo. La importación es síncrona y no envía correos.
 
 ---
 
@@ -1068,4 +1082,73 @@ curl.exe -X POST "http://localhost:8080/api/v1/admin/campaigns" `
 
 Al crearla, la campaña queda en estado `READY` y cada contacto recibe una
 invitación interna en estado `UPLOADED` con un token único. Este endpoint no
-envía correos; el envío se implementará como un caso de uso separado.
+envía correos; el envío se ejecuta con el endpoint de la siguiente sección.
+
+---
+
+# Envío asíncrono de campañas con Hostinger
+
+El backend usa el buzón de Hostinger mediante SMTP. Copia las variables de
+`.env.example` a tu archivo local `.env` y configura:
+
+```properties
+MAIL_HOST=smtp.hostinger.com
+MAIL_PORT=465
+MAIL_USERNAME=contacto@tu-dominio.com
+MAIL_PASSWORD=contrasena_real_del_buzon
+MAIL_SSL_ENABLED=true
+MAIL_FROM_ADDRESS=contacto@tu-dominio.com
+MAIL_FROM_NAME=Ghost Load
+FRONTEND_INVITATION_URL=http://localhost:5173/invitations
+MAIL_WORKER_ENABLED=true
+```
+
+`MAIL_PASSWORD` es la contraseña del buzón, no la contraseña de la cuenta de
+Hostinger. El archivo `.env` está ignorado por Git y nunca debe subirse.
+
+Antes de crear una campaña puedes comprobar las credenciales sin enviar ningún
+correo:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/v1/admin/email/test-connection" `
+  -H "Authorization: Bearer TU_TOKEN_ADMIN"
+```
+
+Una configuración correcta devuelve:
+
+```json
+{
+  "available": true,
+  "code": "SMTP_AVAILABLE",
+  "message": "Conexión y autenticación SMTP verificadas correctamente."
+}
+```
+
+Si falla, `code` distingue credenciales rechazadas, problemas SSL/TLS,
+conectividad o configuración. Los envíos fallidos guardan el mismo código en
+`email_outbox.last_error` y también lo escriben en la consola del backend.
+
+Para aceptar el envío de una campaña en estado `READY`:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/v1/admin/campaigns/UUID_DE_LA_CAMPANA/send" `
+  -H "Authorization: Bearer TU_TOKEN_ADMIN"
+```
+
+La API responde `202 Accepted` y cambia la campaña a `SENDING`. Cada correo se
+guarda primero en la tabla `email_outbox`; por eso el trabajo sobrevive a un
+reinicio del backend. El worker intenta cada entrega hasta tres veces:
+
+- invitación entregada al servidor SMTP: `SENT`;
+- entrega agotada después de tres intentos: `FAILED`;
+- campaña terminada con al menos un envío: `ACTIVE`;
+- campaña sin ningún envío exitoso: `FAILED`.
+
+Para desarrollar sin enviar correos reales, conserva:
+
+```properties
+MAIL_WORKER_ENABLED=false
+```
+
+En ese modo el endpoint sigue creando la cola, pero ningún mensaje sale por
+SMTP. Actívalo solamente cuando el buzón y la URL del frontend estén listos.

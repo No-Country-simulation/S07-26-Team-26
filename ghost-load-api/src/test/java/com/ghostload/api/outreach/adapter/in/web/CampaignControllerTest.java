@@ -3,6 +3,8 @@ package com.ghostload.api.outreach.adapter.in.web;
 import com.ghostload.api.outreach.application.port.in.CreateCampaignCommand;
 import com.ghostload.api.outreach.application.port.in.CreateCampaignResult;
 import com.ghostload.api.outreach.application.port.in.CreateCampaignUseCase;
+import com.ghostload.api.outreach.application.port.in.SendCampaignResult;
+import com.ghostload.api.outreach.application.port.in.SendCampaignUseCase;
 import com.ghostload.api.outreach.domain.model.CampaignStatus;
 import com.ghostload.api.shared.adapter.in.web.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
@@ -41,7 +43,12 @@ class CampaignControllerTest {
                     Instant.parse("2026-07-26T18:00:00Z"));
         };
         CampaignController controller =
-                new CampaignController(useCase, new CampaignWebMapper());
+                new CampaignController(
+                        useCase,
+                        command -> {
+                            throw new AssertionError("No debe enviarse la campaña.");
+                        },
+                        new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -75,7 +82,12 @@ class CampaignControllerTest {
             throw new AssertionError("El caso de uso no debe ejecutarse.");
         };
         CampaignController controller =
-                new CampaignController(useCase, new CampaignWebMapper());
+                new CampaignController(
+                        useCase,
+                        command -> {
+                            throw new AssertionError("No debe enviarse la campaña.");
+                        },
+                        new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -91,5 +103,37 @@ class CampaignControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
+    void shouldAcceptCampaignForAsynchronousDelivery() throws Exception {
+        UUID campaignId =
+                UUID.fromString("0f04b111-7131-49f4-9fb7-9a04705e2309");
+        SendCampaignUseCase sendUseCase = command -> new SendCampaignResult(
+                command.campaignId(),
+                "Benchmark julio",
+                CampaignStatus.SENDING,
+                "Conoce la madurez de tu data center",
+                2,
+                null,
+                null,
+                Instant.parse("2026-07-26T18:00:00Z"));
+        CampaignController controller = new CampaignController(
+                command -> {
+                    throw new AssertionError("No debe crearse una campaña.");
+                },
+                sendUseCase,
+                new CampaignWebMapper());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        mockMvc.perform(post(
+                        "/api/v1/admin/campaigns/{campaignId}/send",
+                        campaignId))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.id").value(campaignId.toString()))
+                .andExpect(jsonPath("$.status").value("SENDING"))
+                .andExpect(jsonPath("$.recipientCount").value(2));
     }
 }

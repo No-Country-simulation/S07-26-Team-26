@@ -15,9 +15,6 @@ public class ContactJpaEntity {
     @Id
     private UUID id;
 
-    @Column(name = "contact_import_id", nullable = false)
-    private UUID contactImportId;
-
     @Column(name = "first_name", nullable = false, length = 80)
     private String firstName;
 
@@ -41,7 +38,6 @@ public class ContactJpaEntity {
 
     ContactJpaEntity(
             UUID id,
-            UUID contactImportId,
             String firstName,
             String lastName,
             String email,
@@ -49,7 +45,6 @@ public class ContactJpaEntity {
             String position,
             Instant createdAt) {
         this.id = id;
-        this.contactImportId = contactImportId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -60,10 +55,6 @@ public class ContactJpaEntity {
 
     UUID id() {
         return id;
-    }
-
-    UUID contactImportId() {
-        return contactImportId;
     }
 
     String firstName() {

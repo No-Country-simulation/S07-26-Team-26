@@ -13,6 +13,8 @@ public class ContactImportWebMapper {
                 result.status().name(),
                 result.totalRows(),
                 result.validContacts(),
+                result.newContacts(),
+                result.existingContacts(),
                 result.duplicates(),
                 result.invalidRows(),
                 result.issues().stream()

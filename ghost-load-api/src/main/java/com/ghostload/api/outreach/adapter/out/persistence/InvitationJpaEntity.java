@@ -78,4 +78,24 @@ public class InvitationJpaEntity {
         this.status = status;
         this.createdAt = createdAt;
     }
+
+    UUID id() {
+        return id;
+    }
+
+    UUID campaignId() {
+        return campaignId;
+    }
+
+    UUID contactId() {
+        return contactId;
+    }
+
+    UUID token() {
+        return token;
+    }
+
+    InvitationStatus status() {
+        return status;
+    }
 }

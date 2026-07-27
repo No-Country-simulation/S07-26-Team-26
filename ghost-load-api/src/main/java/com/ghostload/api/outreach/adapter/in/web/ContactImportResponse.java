@@ -10,6 +10,8 @@ public record ContactImportResponse(
         String status,
         int totalRows,
         int validContacts,
+        int newContacts,
+        int existingContacts,
         int duplicates,
         int invalidRows,
         List<ImportIssueResponse> issues,

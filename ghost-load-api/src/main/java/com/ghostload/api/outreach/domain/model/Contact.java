@@ -5,7 +5,6 @@ import java.util.UUID;
 
 public record Contact(
         UUID id,
-        UUID contactImportId,
         String firstName,
         String lastName,
         ContactEmail email,
@@ -14,8 +13,8 @@ public record Contact(
         Instant createdAt) {
 
     public Contact {
-        if (id == null || contactImportId == null || email == null || createdAt == null) {
-            throw new IllegalArgumentException("Los identificadores, email y fecha son obligatorios.");
+        if (id == null || email == null || createdAt == null) {
+            throw new IllegalArgumentException("El identificador, email y fecha son obligatorios.");
         }
         firstName = requireText(firstName, "El nombre es obligatorio.", 80);
         lastName = requireText(lastName, "El apellido es obligatorio.", 80);
@@ -24,7 +23,6 @@ public record Contact(
     }
 
     public static Contact create(
-            UUID contactImportId,
             String firstName,
             String lastName,
             ContactEmail email,
@@ -33,7 +31,6 @@ public record Contact(
             Instant createdAt) {
         return new Contact(
                 UUID.randomUUID(),
-                contactImportId,
                 firstName,
                 lastName,
                 email,

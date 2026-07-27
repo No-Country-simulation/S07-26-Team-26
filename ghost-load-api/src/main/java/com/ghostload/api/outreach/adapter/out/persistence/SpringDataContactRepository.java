@@ -16,4 +16,6 @@ interface SpringDataContactRepository extends JpaRepository<ContactJpaEntity, UU
             where lower(contact.email) in :emails
             """)
     List<String> findExistingNormalizedEmails(@Param("emails") Set<String> emails);
+
+    List<ContactJpaEntity> findAllByContactImportIdOrderByCreatedAtAsc(UUID contactImportId);
 }

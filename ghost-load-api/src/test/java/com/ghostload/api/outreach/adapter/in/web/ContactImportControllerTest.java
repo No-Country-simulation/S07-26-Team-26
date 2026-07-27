@@ -35,6 +35,8 @@ class ContactImportControllerTest {
                     ContactImportStatus.COMPLETED,
                     1,
                     1,
+                    1,
+                    0,
                     0,
                     0,
                     List.of(),
@@ -61,6 +63,8 @@ class ContactImportControllerTest {
                 .andExpect(jsonPath("$.importId").value(importId.toString()))
                 .andExpect(jsonPath("$.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.validContacts").value(1))
+                .andExpect(jsonPath("$.newContacts").value(1))
+                .andExpect(jsonPath("$.existingContacts").value(0))
                 .andExpect(jsonPath("$.issues").isArray());
 
         assertThat(receivedCommand.get().name()).isEqualTo("Prospectos Q3");

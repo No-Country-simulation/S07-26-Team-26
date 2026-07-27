@@ -164,7 +164,6 @@ class CreateCampaignServiceTest {
 
     private Contact contact(String email) {
         return Contact.create(
-                IMPORT_ID,
                 "Nombre",
                 "Apellido",
                 new ContactEmail(email),

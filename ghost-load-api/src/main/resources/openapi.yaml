@@ -46,6 +46,8 @@ tags:
     description: Importación y consulta de contactos.
   - name: Admin Campaigns
     description: Gestión de campañas de outreach.
+  - name: Admin Email
+    description: Diagnóstico administrativo de la conexión SMTP.
   - name: Admin Dashboard
     description: Métricas y resultados acumulados.
   - name: Admin Operators
@@ -574,6 +576,9 @@ paths:
     post:
       tags: [Admin Campaigns]
       summary: Enviar o encolar invitaciones de una campaña
+      description: >
+        Cambia una campaña READY a SENDING y guarda sus correos en una cola
+        durable de PostgreSQL. Un worker asíncrono realiza los envíos por SMTP.
       operationId: sendCampaign
       security:
         - adminBearer: []
@@ -594,6 +599,28 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/email/test-connection:
+    post:
+      tags: [Admin Email]
+      summary: Verificar conexión y autenticación SMTP
+      operationId: testEmailConnection
+      description: >
+        Abre una conexión autenticada contra el servidor SMTP configurado.
+        No crea ni envía ningún correo.
+      security:
+        - adminBearer: []
+      responses:
+        '200':
+          description: Resultado del diagnóstico SMTP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailConnectionTestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '500':
           $ref: '#/components/responses/InternalError'
 
@@ -1300,6 +1327,8 @@ components:
         - status
         - totalRows
         - validContacts
+        - newContacts
+        - existingContacts
         - duplicates
         - invalidRows
         - issues
@@ -1319,9 +1348,19 @@ components:
         validContacts:
           type: integer
           minimum: 0
+          description: Contactos nuevos y existentes asociados a esta importación.
+        newContacts:
+          type: integer
+          minimum: 0
+          description: Contactos creados por primera vez.
+        existingContacts:
+          type: integer
+          minimum: 0
+          description: Contactos existentes reutilizados en esta importación.
         duplicates:
           type: integer
           minimum: 0
+          description: Filas repetidas dentro del mismo archivo.
         invalidRows:
           type: integer
           minimum: 0
@@ -1349,7 +1388,6 @@ components:
             - MISSING_COLUMN
             - INVALID_EMAIL
             - DUPLICATE_IN_FILE
-            - EXISTING_CONTACT
             - INVALID_VALUE
         message:
           type: string
@@ -1471,6 +1509,27 @@ components:
         createdAt:
           type: string
           format: date-time
+
+    EmailConnectionTestResponse:
+      type: object
+      required: [available, code, message]
+      properties:
+        available:
+          type: boolean
+          description: Indica si se pudo conectar y autenticar con SMTP.
+        code:
+          type: string
+          enum:
+            - SMTP_AVAILABLE
+            - AUTHENTICATION_FAILED
+            - TLS_FAILED
+            - CONNECTION_FAILED
+            - SMTP_REJECTED
+            - CONFIGURATION_FAILED
+            - UNKNOWN_SMTP_ERROR
+        message:
+          type: string
+          description: Diagnóstico seguro que no expone credenciales.
 
     CampaignDetailResponse:
       allOf:

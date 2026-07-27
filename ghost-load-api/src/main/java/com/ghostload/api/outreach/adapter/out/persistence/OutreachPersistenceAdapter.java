@@ -1,10 +1,14 @@
 package com.ghostload.api.outreach.adapter.out.persistence;
 
 import com.ghostload.api.outreach.application.port.out.LoadCampaignAudiencePort;
-import com.ghostload.api.outreach.application.port.out.LoadExistingContactEmailsPort;
+import com.ghostload.api.outreach.application.port.out.LoadCampaignDeliveryPort;
+import com.ghostload.api.outreach.application.port.out.LoadExistingContactsPort;
+import com.ghostload.api.outreach.application.port.out.QueueCampaignEmailsPort;
 import com.ghostload.api.outreach.application.port.out.SaveCampaignPort;
 import com.ghostload.api.outreach.application.port.out.SaveContactImportBatchPort;
+import com.ghostload.api.outreach.domain.exception.InvalidCampaignStateException;
 import com.ghostload.api.outreach.domain.model.Campaign;
+import com.ghostload.api.outreach.domain.model.CampaignStatus;
 import com.ghostload.api.outreach.domain.model.Contact;
 import com.ghostload.api.outreach.domain.model.ContactEmail;
 import com.ghostload.api.outreach.domain.model.ContactImport;
@@ -13,46 +17,72 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class OutreachPersistenceAdapter
-        implements LoadExistingContactEmailsPort,
+        implements LoadExistingContactsPort,
         SaveContactImportBatchPort,
         LoadCampaignAudiencePort,
-        SaveCampaignPort {
+        SaveCampaignPort,
+        LoadCampaignDeliveryPort,
+        QueueCampaignEmailsPort {
 
     private final SpringDataContactImportRepository contactImportRepository;
     private final SpringDataContactRepository contactRepository;
+    private final SpringDataContactImportContactRepository contactImportContactRepository;
     private final SpringDataCampaignRepository campaignRepository;
     private final SpringDataInvitationRepository invitationRepository;
+    private final SpringDataEmailOutboxRepository emailOutboxRepository;
 
     public OutreachPersistenceAdapter(
             SpringDataContactImportRepository contactImportRepository,
             SpringDataContactRepository contactRepository,
+            SpringDataContactImportContactRepository contactImportContactRepository,
             SpringDataCampaignRepository campaignRepository,
-            SpringDataInvitationRepository invitationRepository) {
+            SpringDataInvitationRepository invitationRepository,
+            SpringDataEmailOutboxRepository emailOutboxRepository) {
         this.contactImportRepository = contactImportRepository;
         this.contactRepository = contactRepository;
+        this.contactImportContactRepository = contactImportContactRepository;
         this.campaignRepository = campaignRepository;
         this.invitationRepository = invitationRepository;
+        this.emailOutboxRepository = emailOutboxRepository;
     }
 
     @Override
-    public Set<String> loadExistingEmails(Set<String> normalizedEmails) {
+    public Map<String, Contact> loadExistingContacts(Set<String> normalizedEmails) {
         if (normalizedEmails.isEmpty()) {
-            return Set.of();
+            return Map.of();
         }
-        return Set.copyOf(contactRepository.findExistingNormalizedEmails(normalizedEmails));
+        return contactRepository.findExistingContacts(normalizedEmails).stream()
+                .map(this::toDomain)
+                .collect(Collectors.toUnmodifiableMap(
+                        contact -> contact.email().value(),
+                        Function.identity()));
     }
 
     @Override
     @Transactional
-    public void save(ContactImport contactImport, List<Contact> contacts) {
-        contactImportRepository.save(toEntity(contactImport));
-        contactRepository.saveAll(contacts.stream().map(this::toEntity).toList());
+    public void save(
+            ContactImport contactImport,
+            List<Contact> newContacts,
+            List<UUID> audienceContactIds) {
+        contactImportRepository.saveAndFlush(toEntity(contactImport));
+        contactRepository.saveAllAndFlush(
+                newContacts.stream().map(this::toEntity).toList());
+        contactImportContactRepository.saveAll(
+                audienceContactIds.stream()
+                        .map(contactId -> new ContactImportContactJpaEntity(
+                                contactImport.id(),
+                                contactId,
+                                contactImport.createdAt()))
+                        .toList());
     }
 
     @Override
@@ -61,8 +91,8 @@ public class OutreachPersistenceAdapter
         return contactImportRepository.findById(contactImportId)
                 .map(contactImport -> new CampaignAudience(
                         toDomain(contactImport),
-                        contactRepository
-                                .findAllByContactImportIdOrderByCreatedAtAsc(contactImportId)
+                        contactImportContactRepository
+                                .findContactsByImportId(contactImportId)
                                 .stream()
                                 .map(this::toDomain)
                                 .toList()));
@@ -73,6 +103,33 @@ public class OutreachPersistenceAdapter
     public void save(Campaign campaign, List<Invitation> invitations) {
         campaignRepository.save(toEntity(campaign));
         invitationRepository.saveAll(invitations.stream().map(this::toEntity).toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CampaignDelivery> loadCampaignDelivery(UUID campaignId) {
+        return campaignRepository.findById(campaignId)
+                .map(campaign -> new CampaignDelivery(
+                        toDomain(campaign),
+                        invitationRepository
+                                .findRecipientsByCampaignId(campaignId)
+                                .stream()
+                                .map(this::toRecipient)
+                                .toList()));
+    }
+
+    @Override
+    @Transactional
+    public void queue(Campaign campaign, List<QueuedEmail> emails) {
+        int updated = campaignRepository.transitionStatus(
+                campaign.id(),
+                CampaignStatus.READY,
+                CampaignStatus.SENDING);
+        if (updated != 1) {
+            throw new InvalidCampaignStateException(
+                    "La campaña ya fue enviada o está siendo procesada.");
+        }
+        emailOutboxRepository.saveAll(emails.stream().map(this::toEntity).toList());
     }
 
     private ContactImportJpaEntity toEntity(ContactImport contactImport) {
@@ -90,7 +147,6 @@ public class OutreachPersistenceAdapter
     private ContactJpaEntity toEntity(Contact contact) {
         return new ContactJpaEntity(
                 contact.id(),
-                contact.contactImportId(),
                 contact.firstName(),
                 contact.lastName(),
                 contact.email().value(),
@@ -126,6 +182,21 @@ public class OutreachPersistenceAdapter
                 invitation.createdAt());
     }
 
+    private EmailOutboxJpaEntity toEntity(QueuedEmail email) {
+        return new EmailOutboxJpaEntity(
+                email.id(),
+                email.campaignId(),
+                email.invitationId(),
+                email.recipientEmail(),
+                email.recipientName(),
+                email.subject(),
+                email.message(),
+                email.callToActionText(),
+                email.invitationToken(),
+                email.availableAt(),
+                email.createdAt());
+    }
+
     private ContactImport toDomain(ContactImportJpaEntity entity) {
         return new ContactImport(
                 entity.id(),
@@ -141,12 +212,39 @@ public class OutreachPersistenceAdapter
     private Contact toDomain(ContactJpaEntity entity) {
         return new Contact(
                 entity.id(),
-                entity.contactImportId(),
                 entity.firstName(),
                 entity.lastName(),
                 new ContactEmail(entity.email()),
                 entity.companyName(),
                 entity.position(),
                 entity.createdAt());
+    }
+
+    private Campaign toDomain(CampaignJpaEntity entity) {
+        return Campaign.reconstruct(
+                entity.id(),
+                entity.contactImportId(),
+                entity.name(),
+                entity.description(),
+                entity.subject(),
+                entity.message(),
+                entity.callToActionText(),
+                entity.status(),
+                entity.recipientCount(),
+                entity.scheduledAt(),
+                entity.timezone(),
+                entity.sentAt(),
+                entity.createdAt());
+    }
+
+    private CampaignRecipient toRecipient(
+            SpringDataInvitationRepository.CampaignRecipientView recipient) {
+        return new CampaignRecipient(
+                recipient.getInvitationId(),
+                recipient.getInvitationToken(),
+                recipient.getInvitationStatus(),
+                recipient.getFirstName(),
+                recipient.getLastName(),
+                recipient.getEmail());
     }
 }

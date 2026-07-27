@@ -4,7 +4,7 @@ import com.ghostload.api.outreach.application.port.in.ImportContactsCommand;
 import com.ghostload.api.outreach.application.port.in.ImportContactsResult;
 import com.ghostload.api.outreach.application.port.in.ImportContactsUseCase;
 import com.ghostload.api.outreach.application.port.out.ContactFileRow;
-import com.ghostload.api.outreach.application.port.out.LoadExistingContactEmailsPort;
+import com.ghostload.api.outreach.application.port.out.LoadExistingContactsPort;
 import com.ghostload.api.outreach.application.port.out.ParseContactFilePort;
 import com.ghostload.api.outreach.application.port.out.SaveContactImportBatchPort;
 import com.ghostload.api.outreach.domain.exception.ContactFileTooLargeException;
@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,17 +32,17 @@ public final class ImportContactsService implements ImportContactsUseCase {
     static final int MAX_ROWS = 5_000;
 
     private final ParseContactFilePort parseContactFilePort;
-    private final LoadExistingContactEmailsPort loadExistingContactEmailsPort;
+    private final LoadExistingContactsPort loadExistingContactsPort;
     private final SaveContactImportBatchPort saveContactImportBatchPort;
     private final Clock clock;
 
     public ImportContactsService(
             ParseContactFilePort parseContactFilePort,
-            LoadExistingContactEmailsPort loadExistingContactEmailsPort,
+            LoadExistingContactsPort loadExistingContactsPort,
             SaveContactImportBatchPort saveContactImportBatchPort,
             Clock clock) {
         this.parseContactFilePort = parseContactFilePort;
-        this.loadExistingContactEmailsPort = loadExistingContactEmailsPort;
+        this.loadExistingContactsPort = loadExistingContactsPort;
         this.saveContactImportBatchPort = saveContactImportBatchPort;
         this.clock = clock;
     }
@@ -70,30 +71,31 @@ public final class ImportContactsService implements ImportContactsUseCase {
         Set<String> candidateEmails = validRows.stream()
                 .map(row -> row.email().value())
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
-        Set<String> existingEmails =
-                loadExistingContactEmailsPort.loadExistingEmails(candidateEmails);
+        Map<String, Contact> existingContacts =
+                loadExistingContactsPort.loadExistingContacts(candidateEmails);
 
         UUID importId = UUID.randomUUID();
         Instant createdAt = clock.instant();
-        List<Contact> contacts = new ArrayList<>();
+        List<Contact> newContacts = new ArrayList<>();
+        List<UUID> audienceContactIds = new ArrayList<>();
+        int existingContactCount = 0;
 
         for (ValidatedRow row : validRows) {
-            if (existingEmails.contains(row.email().value())) {
-                issues.add(new ImportIssue(
-                        row.rowNumber(),
-                        row.email().value(),
-                        ImportIssueCode.EXISTING_CONTACT,
-                        "El contacto ya existe."));
+            Contact existingContact = existingContacts.get(row.email().value());
+            if (existingContact != null) {
+                audienceContactIds.add(existingContact.id());
+                existingContactCount++;
                 continue;
             }
-            contacts.add(Contact.create(
-                    importId,
+            Contact newContact = Contact.create(
                     row.firstName(),
                     row.lastName(),
                     row.email(),
                     row.companyName(),
                     row.position(),
-                    createdAt));
+                    createdAt);
+            newContacts.add(newContact);
+            audienceContactIds.add(newContact.id());
         }
 
         issues.sort(java.util.Comparator.comparingLong(ImportIssue::row));
@@ -106,12 +108,15 @@ public final class ImportContactsService implements ImportContactsUseCase {
                 importId,
                 command.name(),
                 rows.size(),
-                contacts.size(),
+                audienceContactIds.size(),
                 duplicates,
                 invalidRows,
                 createdAt);
 
-        saveContactImportBatchPort.save(contactImport, contacts);
+        saveContactImportBatchPort.save(
+                contactImport,
+                newContacts,
+                audienceContactIds);
 
         return new ImportContactsResult(
                 contactImport.id(),
@@ -119,6 +124,8 @@ public final class ImportContactsService implements ImportContactsUseCase {
                 contactImport.status(),
                 contactImport.totalRows(),
                 contactImport.validContacts(),
+                newContacts.size(),
+                existingContactCount,
                 contactImport.duplicates(),
                 contactImport.invalidRows(),
                 issues,
@@ -213,8 +220,7 @@ public final class ImportContactsService implements ImportContactsUseCase {
     }
 
     private boolean isDuplicate(ImportIssue issue) {
-        return issue.code() == ImportIssueCode.DUPLICATE_IN_FILE
-                || issue.code() == ImportIssueCode.EXISTING_CONTACT;
+        return issue.code() == ImportIssueCode.DUPLICATE_IN_FILE;
     }
 
     private static boolean isBlank(String value) {

@@ -4,7 +4,9 @@ import com.ghostload.api.administration.domain.exception.InvalidAdminCredentials
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationStateException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
 import com.ghostload.api.outreach.domain.exception.ContactFileTooLargeException;
+import com.ghostload.api.outreach.domain.exception.CampaignNotFoundException;
 import com.ghostload.api.outreach.domain.exception.InvalidCampaignException;
+import com.ghostload.api.outreach.domain.exception.InvalidCampaignStateException;
 import com.ghostload.api.outreach.domain.exception.InvalidContactFileException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -119,6 +121,34 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.BAD_REQUEST.value(),
                 "INVALID_CAMPAIGN",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(CampaignNotFoundException.class)
+    ResponseEntity<ApiErrorResponse> handleCampaignNotFound(
+            CampaignNotFoundException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "CAMPAIGN_NOT_FOUND",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvalidCampaignStateException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidCampaignState(
+            InvalidCampaignStateException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "INVALID_CAMPAIGN_STATE",
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

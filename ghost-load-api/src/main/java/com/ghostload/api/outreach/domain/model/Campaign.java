@@ -1,6 +1,7 @@
 package com.ghostload.api.outreach.domain.model;
 
 import com.ghostload.api.outreach.domain.exception.InvalidCampaignException;
+import com.ghostload.api.outreach.domain.exception.InvalidCampaignStateException;
 
 import java.time.DateTimeException;
 import java.time.Instant;
@@ -16,11 +17,11 @@ public final class Campaign {
     private final String subject;
     private final String message;
     private final String callToActionText;
-    private final CampaignStatus status;
+    private CampaignStatus status;
     private final int recipientCount;
     private final Instant scheduledAt;
     private final String timezone;
-    private final Instant sentAt;
+    private Instant sentAt;
     private final Instant createdAt;
 
     private Campaign(
@@ -86,6 +87,43 @@ public final class Campaign {
                 timezone,
                 null,
                 createdAt);
+    }
+
+    public static Campaign reconstruct(
+            UUID id,
+            UUID contactImportId,
+            String name,
+            String description,
+            String subject,
+            String message,
+            String callToActionText,
+            CampaignStatus status,
+            int recipientCount,
+            Instant scheduledAt,
+            String timezone,
+            Instant sentAt,
+            Instant createdAt) {
+        return new Campaign(
+                id,
+                contactImportId,
+                name,
+                description,
+                subject,
+                message,
+                callToActionText,
+                status,
+                recipientCount,
+                scheduledAt,
+                timezone,
+                sentAt,
+                createdAt);
+    }
+
+    public void startSending() {
+        if (status != CampaignStatus.READY) {
+            throw new InvalidCampaignStateException(status);
+        }
+        status = CampaignStatus.SENDING;
     }
 
     private static String requireText(

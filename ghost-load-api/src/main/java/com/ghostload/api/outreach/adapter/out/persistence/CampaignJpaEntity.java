@@ -86,4 +86,56 @@ public class CampaignJpaEntity {
         this.sentAt = sentAt;
         this.createdAt = createdAt;
     }
+
+    UUID id() {
+        return id;
+    }
+
+    UUID contactImportId() {
+        return contactImportId;
+    }
+
+    String name() {
+        return name;
+    }
+
+    String description() {
+        return description;
+    }
+
+    String subject() {
+        return subject;
+    }
+
+    String message() {
+        return message;
+    }
+
+    String callToActionText() {
+        return callToActionText;
+    }
+
+    CampaignStatus status() {
+        return status;
+    }
+
+    int recipientCount() {
+        return recipientCount;
+    }
+
+    Instant scheduledAt() {
+        return scheduledAt;
+    }
+
+    String timezone() {
+        return timezone;
+    }
+
+    Instant sentAt() {
+        return sentAt;
+    }
+
+    Instant createdAt() {
+        return createdAt;
+    }
 }

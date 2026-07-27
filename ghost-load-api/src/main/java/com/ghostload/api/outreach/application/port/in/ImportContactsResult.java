@@ -13,6 +13,8 @@ public record ImportContactsResult(
         ContactImportStatus status,
         int totalRows,
         int validContacts,
+        int newContacts,
+        int existingContacts,
         int duplicates,
         int invalidRows,
         List<ImportIssue> issues,
@@ -20,5 +22,9 @@ public record ImportContactsResult(
 
     public ImportContactsResult {
         issues = List.copyOf(issues);
+        if (newContacts + existingContacts != validContacts) {
+            throw new IllegalArgumentException(
+                    "Los contactos nuevos y existentes deben coincidir con los válidos.");
+        }
     }
 }

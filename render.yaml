@@ -1,5 +1,5 @@
 databases:
-  - name: backend_db
+  - name: ghost-load-db
     databaseName: ghost_load
     plan: free
     ipAllowList: []

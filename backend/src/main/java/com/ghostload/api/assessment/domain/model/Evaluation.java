@@ -55,6 +55,15 @@ public final class Evaluation {
         this.updatedAt = Instant.now();
     }
 
+    public void markBenchmarkCompleted() {
+        if (this.state != EvaluationState.CALCULATOR_COMPLETED) {
+            throw new InvalidEvaluationStateException(
+                    "No se puede completar el benchmark: la evaluación está en estado " + this.state);
+        }
+        this.state = EvaluationState.BENCHMARK_COMPLETED;
+        this.updatedAt = Instant.now();
+    }
+
     public EvaluationId id() { return id; }
     public OperatorId operatorId() { return operatorId; }
     public EvaluationState state() { return state; }

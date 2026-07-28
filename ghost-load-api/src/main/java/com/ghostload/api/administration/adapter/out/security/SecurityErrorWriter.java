@@ -4,7 +4,7 @@ import com.ghostload.api.shared.adapter.in.web.ApiErrorResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import java.io.IOException;
 import java.time.Instant;

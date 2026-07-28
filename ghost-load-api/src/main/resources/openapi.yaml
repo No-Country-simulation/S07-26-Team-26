@@ -199,8 +199,8 @@ paths:
             application/json:
               schema:
                 type: array
-                minItems: 12
-                maxItems: 12
+                minItems: 20
+                maxItems: 20
                 items:
                   $ref: '#/components/schemas/BenchmarkQuestion'
         '500':
@@ -214,7 +214,7 @@ paths:
       summary: Enviar respuestas y completar el benchmark
       operationId: submitBenchmark
       description: |
-        Valida las 12 respuestas, calcula puntaje total, puntajes por categoría,
+        Valida las 20 respuestas, calcula puntaje total, puntajes por módulo,
         nivel de madurez y percentil. Al completarse, dispara automáticamente
         la generación del PDF.
       security:
@@ -231,7 +231,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BenchmarkSubmissionResponse'
+                $ref: '#/components/schemas/BenchmarkResult'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -817,13 +817,14 @@ components:
     MaturityLevel:
       type: string
       enum: [INITIAL, DEVELOPING, MANAGED, ADVANCED, OPTIMIZED]
-    BenchmarkCategory:
+    BenchmarkModule:
       type: string
       enum:
         - CAPACITY_VISIBILITY
-        - PHYSICAL_OPERATIONAL_COORDINATION
+        - OPERATIONAL_COORDINATION
         - AUTOMATION
-        - GOVERNANCE_DECISION_MAKING
+        - GOVERNANCE
+        - CONTINUOUS_IMPROVEMENT
     CurrencyCode:
       type: string
       pattern: '^[A-Z]{3}$'
@@ -1037,7 +1038,7 @@ components:
 
     BenchmarkQuestion:
       type: object
-      required: [id, version, category, order, text, active]
+      required: [id, version, module, order, text, active]
       properties:
         id:
           type: string
@@ -1045,12 +1046,12 @@ components:
         version:
           type: string
           example: v1
-        category:
-          $ref: '#/components/schemas/BenchmarkCategory'
+        module:
+          $ref: '#/components/schemas/BenchmarkModule'
         order:
           type: integer
           minimum: 1
-          maximum: 12
+          maximum: 20
         text:
           type: string
           minLength: 10
@@ -1086,8 +1087,8 @@ components:
           example: v1
         answers:
           type: array
-          minItems: 12
-          maxItems: 12
+          minItems: 20
+          maxItems: 20
           uniqueItems: true
           items:
             $ref: '#/components/schemas/BenchmarkAnswerInput'
@@ -1132,7 +1133,7 @@ components:
         - maturityLevel
         - percentile
         - percentileDisclaimer
-        - categoryScores
+        - moduleScores
         - completedAt
       properties:
         totalScore:
@@ -1152,22 +1153,22 @@ components:
         percentileDisclaimer:
           type: string
           example: Comparación realizada con datos de demostración del ambiente de staging.
-        categoryScores:
+        moduleScores:
           type: array
-          minItems: 4
-          maxItems: 4
+          minItems: 5
+          maxItems: 5
           items:
-            $ref: '#/components/schemas/CategoryScore'
+            $ref: '#/components/schemas/ModuleScore'
         completedAt:
           type: string
           format: date-time
 
-    CategoryScore:
+    ModuleScore:
       type: object
-      required: [category, score]
+      required: [module, score]
       properties:
-        category:
-          $ref: '#/components/schemas/BenchmarkCategory'
+        module:
+          $ref: '#/components/schemas/BenchmarkModule'
         score:
           type: number
           format: double
@@ -1176,10 +1177,10 @@ components:
 
     Recommendation:
       type: object
-      required: [category, title, description, priority]
+      required: [module, title, description, priority]
       properties:
-        category:
-          $ref: '#/components/schemas/BenchmarkCategory'
+        module:
+          $ref: '#/components/schemas/BenchmarkModule'
         title:
           type: string
         description:
@@ -1655,7 +1656,7 @@ components:
         categoryAverages:
           type: array
           items:
-            $ref: '#/components/schemas/CategoryScore'
+            $ref: '#/components/schemas/ModuleScore'
 
     MaturityDistributionItem:
       type: object

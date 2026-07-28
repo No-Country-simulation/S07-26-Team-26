@@ -5,6 +5,9 @@
 *.iws
 *.ipr
 
+# Dependencies
+node_modules/
+
 # Java and Maven build output
 **/target/
 *.class
@@ -19,6 +22,10 @@ application-*.local.properties
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Build output
+dist/
+build/
 
 # Logs
 *.log

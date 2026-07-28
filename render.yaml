@@ -1,15 +1,15 @@
 databases:
-  - name: ghost-load-db
+  - name: backend_db
     databaseName: ghost_load
     plan: free
     ipAllowList: []
 
 services:
   - type: web
-    name: ghost-load-api
+    name: backend
     runtime: docker
     plan: free
-    dockerfilePath: ./ghost-load-api/Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     envVars:
       - key: SPRING_DATASOURCE_USERNAME
         fromDatabase:
@@ -57,10 +57,10 @@ services:
         sync: false
 
   - type: web
-    name: ghost-load-frontend
+    name: frontend
     runtime: docker
     plan: free
-    dockerfilePath: ./FRONTEND/Dockerfile
+    dockerfilePath: ./frontend/Dockerfile
     envVars:
       - key: NEXT_PUBLIC_API_URL
         sync: false

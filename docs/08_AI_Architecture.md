@@ -70,10 +70,13 @@ El PUE de 1.8 indica oportunidades de optimización energética.
 Se identificaron 180 kW de capacidad subutilizada..."
 ```
 
-**Implementación:**
-- Adaptador: `GoogleAIStudioAdapter` (implements `AIService` port)
-- Trigger: automático al completar el benchmark
-- Resultado almacenado en `benchmark_results.ai_insights` (TEXT)
+**Implementación propuesta para V1.2:**
+- La aplicación definirá puertos orientados a la intención, por ejemplo
+  `GenerateBenchmarkInsightsPort` o `ClassifyLeadPort`.
+- Un adaptador como `GoogleAIStudioAdapter` podrá implementarlos cuando el proveedor sea
+  aprobado.
+- El trigger, el proveedor y la persistencia definitiva se decidirán al implementar el
+  corte vertical correspondiente.
 
 ---
 
@@ -141,24 +144,28 @@ con ROI estimado de 18 meses.
 
 ---
 
-## Arquitectura del Adaptador
+## Arquitectura del adaptador (propuesta V1.2)
 
 ```
-domain/
-└── ports/
+assessment/
+├── application/
+│   └── port/
+│       └── out/
+│           ├── GenerateBenchmarkInsightsPort.java
+│           ├── GenerateRecommendationsPort.java
+│           └── ClassifyLeadPort.java
+└── adapter/
     └── out/
-        └── AIService.java          ← Puerto (interfaz)
-            ├── generateInsights(BenchmarkResult) → String
-            ├── generateRecommendations(BenchmarkResult) → List<Recommendation>
-            └── classifyLead(BenchmarkResult) → LeadScore
-
-adapters/
-└── out/
-    └── ai/
-        └── GoogleAIStudioAdapter.java   ← Implementación
+        └── ai/
+            └── GoogleAIStudioAdapter.java
 ```
 
-**Beneficio hexagonal:** Si en V2 se cambia Google AI Studio por OpenAI, Anthropic u otro proveedor, solo se reemplaza el adaptador. El dominio no se toca.
+Los tipos intercambiados por estos puertos pertenecerán a aplicación o dominio y no
+expondrán SDKs del proveedor. Si el proveedor cambia, se reemplaza el adaptador sin
+modificar el dominio.
+
+Esta estructura no autoriza a crear interfaces o adaptadores antes de que una historia de
+V1.2 los necesite.
 
 ---
 

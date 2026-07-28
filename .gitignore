@@ -1,8 +1,31 @@
+# IDEs and editors
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Dependencies
 node_modules/
+
+# Java and Maven build output
+**/target/
+*.class
+
+# Local configuration and secrets
 .env
-.env.local
-dist/
-build/
-*.log
+.env.*
+!.env.example
+application-local.properties
+application-*.local.properties
+
+# Operating system files
 .DS_Store
 Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log

@@ -8,7 +8,7 @@
 
 Vista de la interfaz correspondiente al módulo de Benchmark.
 
-![Frontend Benchmark](Front_End_Benchmark.png)
+![Frontend Benchmark](assets/Front_End_Benchmark.png)
 
 ---
 
@@ -16,7 +16,7 @@ Vista de la interfaz correspondiente al módulo de Benchmark.
 
 Vista de la interfaz correspondiente al módulo de Evaluación.
 
-![Frontend Evaluación](Front_End_Evaluación.png)
+![Frontend Evaluación](assets/Front_End_Evaluación.png)
 
 ---
 
@@ -24,7 +24,7 @@ Vista de la interfaz correspondiente al módulo de Evaluación.
 
 La siguiente imagen muestra la funcionalidad de descarga de reportes disponible en la aplicación.
 
-![Descarga de Reporte](Descarga_Reporte.png)
+![Descarga de Reporte](assets/Descarga_Reporte.png)
 
 
 
@@ -32,4 +32,4 @@ La siguiente imagen muestra la funcionalidad de descarga de reportes disponible 
 
 La siguiente imagen muestra la arquitectura general del sistema.
 
-![Arquitectura](Arquitectura_23-7.png)
+![Arquitectura](assets/Arquitectura_23-7.png)

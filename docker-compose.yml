@@ -19,8 +19,8 @@ services:
 
   backend:
     build:
-      context: ./ghost-load-api
-    container_name: ghost-load-api
+      context: ./backend
+    container_name: backend
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ghost_load
       SPRING_DATASOURCE_USERNAME: postgres
@@ -46,8 +46,8 @@ services:
 
   frontend:
     build:
-      context: ./FRONTEND
-    container_name: ghost-load-frontend
+      context: ./frontend
+    container_name: frontend
     environment:
       NEXT_PUBLIC_API_URL: http://backend:8080
     ports:

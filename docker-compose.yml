@@ -1,11 +1,14 @@
+# Load local values without committing them:
+# docker compose --env-file backend/.env up --build
+
 services:
   postgres:
     image: postgres:16-alpine
     container_name: ghost-load-db
     environment:
-      POSTGRES_DB: ghost_load
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: ${DB_NAME:-ghost_load}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD in backend/.env}
     ports:
       - "5432:5432"
     volumes:
@@ -22,21 +25,21 @@ services:
       context: ./backend
     container_name: backend
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ghost_load
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: 123
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-ghost_load}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD in backend/.env}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      JWT_SECRET: ghost-load-local-jwt-secret-2026-change-me
-      JWT_EXPIRATION_SECONDS: 86400
-      MAIL_HOST: smtp.hostinger.com
-      MAIL_PORT: 465
-      MAIL_USERNAME: contacto@trinitylabs.app
-      MAIL_PASSWORD: fxrbZz59M$#0fQ`4,0Wy
-      MAIL_SSL_ENABLED: true
-      MAIL_FROM_ADDRESS: contacto@trinitylabs.app
-      MAIL_FROM_NAME: Trinity Labs
-      MAIL_WORKER_ENABLED: true
-      FRONTEND_INVITATION_URL: http://localhost:3001/invitations
+      JWT_SECRET: ${JWT_SECRET:?Define JWT_SECRET in backend/.env}
+      JWT_EXPIRATION_SECONDS: ${JWT_EXPIRATION_SECONDS:-86400}
+      MAIL_HOST: ${MAIL_HOST:-smtp.hostinger.com}
+      MAIL_PORT: ${MAIL_PORT:-465}
+      MAIL_USERNAME: ${MAIL_USERNAME:?Define MAIL_USERNAME in backend/.env}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:?Define MAIL_PASSWORD in backend/.env}
+      MAIL_SSL_ENABLED: ${MAIL_SSL_ENABLED:-true}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?Define MAIL_FROM_ADDRESS in backend/.env}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Trinity Labs}
+      MAIL_WORKER_ENABLED: ${MAIL_WORKER_ENABLED:-false}
+      FRONTEND_INVITATION_URL: ${FRONTEND_INVITATION_URL:-http://localhost:3001/invitations}
     ports:
       - "8080:8080"
     depends_on:

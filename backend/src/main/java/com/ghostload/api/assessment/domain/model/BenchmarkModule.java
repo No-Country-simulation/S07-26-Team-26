@@ -1,10 +1,10 @@
 package com.ghostload.api.assessment.domain.model;
 
-/** Five areas of the v1 maturity benchmark. Each area has four questions. */
+/** Cinco categorías del benchmark de eficiencia para Data Centers de IA (v2). */
 public enum BenchmarkModule {
-    CAPACITY_VISIBILITY,
-    OPERATIONAL_COORDINATION,
-    AUTOMATION,
-    GOVERNANCE,
-    CONTINUOUS_IMPROVEMENT
+    ENERGY,
+    GPU_UTILIZATION,
+    COOLING,
+    OPERATIONS,
+    CAPACITY
 }

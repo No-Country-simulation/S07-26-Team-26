@@ -1,9 +1,12 @@
 package com.ghostload.api.outreach.configuration;
 
 import com.ghostload.api.outreach.application.port.in.CreateCampaignUseCase;
+import com.ghostload.api.outreach.application.port.in.CompleteInvitationUseCase;
 import com.ghostload.api.outreach.application.port.in.ImportContactsUseCase;
 import com.ghostload.api.outreach.application.port.in.ProcessPendingEmailsUseCase;
+import com.ghostload.api.outreach.application.port.in.ResolveInvitationUseCase;
 import com.ghostload.api.outreach.application.port.in.SendCampaignUseCase;
+import com.ghostload.api.outreach.application.port.in.StartInvitationUseCase;
 import com.ghostload.api.outreach.application.port.in.VerifyEmailConnectionUseCase;
 import com.ghostload.api.outreach.application.port.out.ClaimQueuedEmailPort;
 import com.ghostload.api.outreach.application.port.out.FinishCampaignDeliveryPort;
@@ -11,17 +14,22 @@ import com.ghostload.api.outreach.application.port.out.GenerateInvitationTokenPo
 import com.ghostload.api.outreach.application.port.out.LoadCampaignAudiencePort;
 import com.ghostload.api.outreach.application.port.out.LoadCampaignDeliveryPort;
 import com.ghostload.api.outreach.application.port.out.LoadExistingContactsPort;
+import com.ghostload.api.outreach.application.port.out.LoadInvitationTrackingPort;
 import com.ghostload.api.outreach.application.port.out.ParseContactFilePort;
 import com.ghostload.api.outreach.application.port.out.QueueCampaignEmailsPort;
 import com.ghostload.api.outreach.application.port.out.RecordEmailDeliveryPort;
 import com.ghostload.api.outreach.application.port.out.SaveCampaignPort;
 import com.ghostload.api.outreach.application.port.out.SaveContactImportBatchPort;
 import com.ghostload.api.outreach.application.port.out.SendEmailPort;
+import com.ghostload.api.outreach.application.port.out.UpdateInvitationTrackingPort;
 import com.ghostload.api.outreach.application.port.out.VerifyEmailConnectionPort;
+import com.ghostload.api.outreach.application.service.CompleteInvitationService;
 import com.ghostload.api.outreach.application.service.CreateCampaignService;
 import com.ghostload.api.outreach.application.service.ImportContactsService;
 import com.ghostload.api.outreach.application.service.ProcessPendingEmailsService;
+import com.ghostload.api.outreach.application.service.ResolveInvitationService;
 import com.ghostload.api.outreach.application.service.SendCampaignService;
+import com.ghostload.api.outreach.application.service.StartInvitationService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -84,6 +92,35 @@ public class OutreachBeanConfiguration {
                 recordEmailDeliveryPort,
                 finishCampaignDeliveryPort,
                 clock);
+    }
+
+    @Bean
+    ResolveInvitationUseCase resolveInvitationUseCase(
+            LoadInvitationTrackingPort loadInvitationTrackingPort,
+            UpdateInvitationTrackingPort updateInvitationTrackingPort,
+            Clock clock) {
+        return new ResolveInvitationService(
+                loadInvitationTrackingPort,
+                updateInvitationTrackingPort,
+                clock);
+    }
+
+    @Bean
+    StartInvitationUseCase startInvitationUseCase(
+            LoadInvitationTrackingPort loadInvitationTrackingPort,
+            UpdateInvitationTrackingPort updateInvitationTrackingPort) {
+        return new StartInvitationService(
+                loadInvitationTrackingPort,
+                updateInvitationTrackingPort);
+    }
+
+    @Bean
+    CompleteInvitationUseCase completeInvitationUseCase(
+            LoadInvitationTrackingPort loadInvitationTrackingPort,
+            UpdateInvitationTrackingPort updateInvitationTrackingPort) {
+        return new CompleteInvitationService(
+                loadInvitationTrackingPort,
+                updateInvitationTrackingPort);
     }
 
     @Bean

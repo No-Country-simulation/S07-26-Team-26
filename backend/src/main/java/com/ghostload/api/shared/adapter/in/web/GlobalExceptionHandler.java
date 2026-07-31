@@ -8,6 +8,9 @@ import com.ghostload.api.outreach.domain.exception.CampaignNotFoundException;
 import com.ghostload.api.outreach.domain.exception.InvalidCampaignException;
 import com.ghostload.api.outreach.domain.exception.InvalidCampaignStateException;
 import com.ghostload.api.outreach.domain.exception.InvalidContactFileException;
+import com.ghostload.api.outreach.domain.exception.InvalidInvitationException;
+import com.ghostload.api.outreach.domain.exception.InvitationNotFoundException;
+import com.ghostload.api.outreach.domain.exception.InvitationUnavailableException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -149,6 +152,48 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.CONFLICT.value(),
                 "INVALID_CAMPAIGN_STATE",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvitationNotFoundException.class)
+    ResponseEntity<ApiErrorResponse> handleInvitationNotFound(
+            InvitationNotFoundException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "INVITATION_NOT_FOUND",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvitationUnavailableException.class)
+    ResponseEntity<ApiErrorResponse> handleInvitationUnavailable(
+            InvitationUnavailableException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.GONE).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.GONE.value(),
+                "INVITATION_UNAVAILABLE",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvalidInvitationException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidInvitation(
+            InvalidInvitationException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "INVALID_INVITATION",
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

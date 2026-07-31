@@ -996,6 +996,25 @@ En Linux o macOS:
 mvn spring-boot:run
 ```
 
+## Comprobar la salud del backend
+
+Spring Boot Actuator expone únicamente los endpoints operativos de salud. No
+requieren JWT y no muestran información interna:
+
+```powershell
+curl.exe http://localhost:8080/actuator/health
+curl.exe http://localhost:8080/actuator/health/liveness
+curl.exe http://localhost:8080/actuator/health/readiness
+```
+
+- `health`: estado general de la aplicación.
+- `liveness`: confirma que el proceso de Spring está vivo.
+- `readiness`: confirma que el backend está listo y PostgreSQL responde.
+
+El diagnóstico de SMTP se mantiene separado en el endpoint administrativo
+`POST /api/v1/admin/email/test-connection`, porque el envío de correos puede
+estar desactivado durante el desarrollo local.
+
 ---
 
 # Principio general

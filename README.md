@@ -23,6 +23,20 @@ docker compose --env-file backend/.env up --build
 No utilices solamente `docker compose up`, porque Docker Compose necesita las
 variables definidas en `backend/.env`.
 
+Cuando Docker informe que el backend está saludable, también puedes comprobarlo
+manualmente sin autenticación:
+
+```powershell
+curl.exe http://localhost:8080/actuator/health
+curl.exe http://localhost:8080/actuator/health/liveness
+curl.exe http://localhost:8080/actuator/health/readiness
+```
+
+Los endpoints específicos devuelven `{"status":"UP"}` cuando el proceso está
+vivo y el backend puede conectarse a PostgreSQL. El endpoint general también
+enumera los grupos públicos `liveness` y `readiness`, pero no expone
+credenciales ni detalles de los componentes internos.
+
 Para detener todos los servicios:
 
 ```powershell

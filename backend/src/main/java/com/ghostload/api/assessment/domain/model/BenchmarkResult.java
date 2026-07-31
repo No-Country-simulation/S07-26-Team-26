@@ -33,7 +33,13 @@ public record BenchmarkResult(double totalScore, MaturityLevel maturityLevel, do
                     if (counts.getOrDefault(module, 0) != 4) {
                         throw new IllegalArgumentException("Cada módulo debe tener exactamente cuatro preguntas activas.");
                     }
-                    return new ModuleScore(module, sums.get(module) / counts.get(module) * 20d);
+                    // Promedio de respuestas (1 a 5) normalizado a una escala real de 0 a 100:
+                    // (promedio - 1) / (5 - 1) * 100. Así 1=0, 3=50, 5=100, alcanzando
+                    // el rango completo que piden los niveles de madurez (Crítico 0-39
+                    // hasta Líder 90-100).
+                    double average = sums.get(module) / counts.get(module);
+                    double normalized = (average - 1) / 4 * 100;
+                    return new ModuleScore(module, normalized);
                 }).toList();
         double total = moduleScores.stream().mapToDouble(ModuleScore::score).average().orElseThrow();
         // MVP percentile: deterministic comparison scale until a production reference dataset exists.

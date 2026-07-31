@@ -1,22 +1,20 @@
 package com.ghostload.api.assessment.domain.model;
 
+// Niveles de madurez según el documento oficial , sobre un puntaje
+// de 0 a 100 (ver la fórmula en BenchmarkResult.calculate, que ahora
+// normaliza el promedio de respuestas 1-5 a una escala real de 0-100).
 public enum MaturityLevel {
-    INITIAL,
-    DEVELOPING,
-    MANAGED,
-    ADVANCED,
-    OPTIMIZED;
+    CRITICAL,           // Crítico: 0-39
+    OPERATIONAL_RISK,   // Riesgo operativo: 40-59
+    GROWING,            // En crecimiento: 60-74
+    MATURE,             // Maduro: 75-89
+    LEADER;             // Líder: 90-100
 
-    // El puntaje real solo puede ir de 20 (todas las respuestas en 1) a 100
-    // (todas las respuestas en 5), nunca menos de 20. Por eso los cortes
-    // dividen ese rango real (20-100) en 5 bandas iguales de 16 puntos cada
-    // una, en vez de arrancar en 0 como antes (lo que dejaba INITIAL
-    // inalcanzable).
     public static MaturityLevel fromScore(double score) {
-        if (score < 36) return INITIAL;
-        if (score < 52) return DEVELOPING;
-        if (score < 68) return MANAGED;
-        if (score < 84) return ADVANCED;
-        return OPTIMIZED;
+        if (score < 40) return CRITICAL;
+        if (score < 60) return OPERATIONAL_RISK;
+        if (score < 75) return GROWING;
+        if (score < 90) return MATURE;
+        return LEADER;
     }
 }

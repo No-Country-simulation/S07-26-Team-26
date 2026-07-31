@@ -1,5 +1,6 @@
 package com.ghostload.api.assessment.domain.model;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 // Un "value object": en vez de pasar un String suelto por todos lados,
@@ -16,6 +17,7 @@ public record Email(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException("El email no puede estar vacío");
         }
+        value = value.trim().toLowerCase(Locale.ROOT);
         if (!EMAIL_PATTERN.matcher(value).matches()) {
             throw new IllegalArgumentException("El email no tiene un formato válido: " + value);
         }

@@ -1099,7 +1099,8 @@ MAIL_PASSWORD=contrasena_real_del_buzon
 MAIL_SSL_ENABLED=true
 MAIL_FROM_ADDRESS=contacto@tu-dominio.com
 MAIL_FROM_NAME=Ghost Load
-FRONTEND_INVITATION_URL=http://localhost:5173/invitations
+FRONTEND_INVITATION_URL=http://localhost:3000/invitations
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
 MAIL_WORKER_ENABLED=true
 ```
 
@@ -1152,3 +1153,56 @@ MAIL_WORKER_ENABLED=false
 
 En ese modo el endpoint sigue creando la cola, pero ningún mensaje sale por
 SMTP. Actívalo solamente cuando el buzón y la URL del frontend estén listos.
+
+---
+
+# Integración de invitaciones con evaluaciones
+
+El enlace del correo contiene el token único de la invitación. Cuando Next.js
+abre la pantalla, debe resolverlo antes de mostrar el formulario:
+
+```powershell
+curl.exe "http://localhost:8080/api/v1/invitations/TOKEN_DE_INVITACION"
+```
+
+Una invitación entregada cambia de `SENT` a `VISITED` y devuelve solamente los
+datos permitidos para precargar el registro:
+
+```json
+{
+  "valid": true,
+  "status": "VISITED",
+  "email": "ana@empresa.com",
+  "firstName": "Ana",
+  "lastName": "Torres",
+  "companyName": "Empresa SAC",
+  "position": "Gerente TI",
+  "campaignName": "Benchmark julio",
+  "expiresAt": null
+}
+```
+
+Para comenzar la evaluación, el frontend envía el mismo token y debe conservar
+el email asociado:
+
+```powershell
+curl.exe -X POST "http://localhost:8080/api/v1/evaluations" `
+  -H "Content-Type: application/json" `
+  -d '{
+    "firstName": "Ana",
+    "lastName": "Torres",
+    "email": "ana@empresa.com",
+    "companyName": "Empresa SAC",
+    "position": "Gerente TI",
+    "country": "Peru",
+    "consentAccepted": true,
+    "marketingConsent": true,
+    "source": "OUTREACH",
+    "invitationToken": "TOKEN_DE_INVITACION"
+  }'
+```
+
+La operación vincula la invitación con el operador y la evaluación, y cambia
+su estado a `STARTED`. Cuando el benchmark se completa correctamente, el mismo
+tracking pasa a `COMPLETED`. Las evaluaciones directas con origen `CALCULATOR`
+o `BENCHMARK` no requieren invitación.

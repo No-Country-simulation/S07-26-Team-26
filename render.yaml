@@ -1,0 +1,68 @@
+databases:
+  - name: ghost-load-db
+    databaseName: ghost_load
+    plan: free
+    ipAllowList: []
+
+services:
+  - type: web
+    name: backend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ghost-load-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ghost-load-db
+          property: password
+      - key: SPRING_DATASOURCE_HOST
+        fromDatabase:
+          name: ghost-load-db
+          property: host
+      - key: SPRING_DATASOURCE_PORT
+        fromDatabase:
+          name: ghost-load-db
+          property: port
+      - key: SPRING_DATASOURCE_DATABASE
+        fromDatabase:
+          name: ghost-load-db
+          property: database
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: validate
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_SECONDS
+        value: "86400"
+      - key: MAIL_HOST
+        value: smtp.hostinger.com
+      - key: MAIL_PORT
+        value: "465"
+      - key: MAIL_USERNAME
+        value: contacto@trinitylabs.app
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_SSL_ENABLED
+        value: "true"
+      - key: MAIL_FROM_ADDRESS
+        value: contacto@trinitylabs.app
+      - key: MAIL_FROM_NAME
+        value: Trinity Labs
+      - key: MAIL_WORKER_ENABLED
+        value: "true"
+      - key: FRONTEND_INVITATION_URL
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+
+  - type: web
+    name: frontend
+    runtime: docker
+    plan: free
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        sync: false

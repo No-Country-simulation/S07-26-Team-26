@@ -1,0 +1,30 @@
+package com.ghostload.api.outreach.application.port.in;
+
+import com.ghostload.api.outreach.domain.model.ContactImportStatus;
+import com.ghostload.api.outreach.domain.model.ImportIssue;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+public record ImportContactsResult(
+        UUID importId,
+        String name,
+        ContactImportStatus status,
+        int totalRows,
+        int validContacts,
+        int newContacts,
+        int existingContacts,
+        int duplicates,
+        int invalidRows,
+        List<ImportIssue> issues,
+        Instant createdAt) {
+
+    public ImportContactsResult {
+        issues = List.copyOf(issues);
+        if (newContacts + existingContacts != validContacts) {
+            throw new IllegalArgumentException(
+                    "Los contactos nuevos y existentes deben coincidir con los válidos.");
+        }
+    }
+}

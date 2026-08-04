@@ -1,0 +1,85 @@
+name: Deploy backend to EC2
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-backend-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Validate deployment secrets
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          test -n "$EC2_HOST"
+          test -n "$EC2_SSH_PRIVATE_KEY"
+          test -n "$EC2_KNOWN_HOSTS"
+
+      - name: Configure SSH
+        env:
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$EC2_SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Deploy pushed commit
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            "ubuntu@$EC2_HOST" \
+            "DEPLOY_SHA='$GITHUB_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+
+          case "$DEPLOY_SHA" in
+            (*[!0-9a-f]*|'') echo "Invalid commit SHA" >&2; exit 1 ;;
+          esac
+
+          cd /home/ubuntu/S07-26-Team-26
+          git fetch origin develop
+          git merge-base --is-ancestor "$DEPLOY_SHA" origin/develop
+          git checkout develop
+          git merge --ff-only "$DEPLOY_SHA"
+
+          cd backend
+          MAVEN_OPTS='-Xmx448m -XX:MaxMetaspaceSize=160m' \
+            mvn --batch-mode --no-transfer-progress clean package -DskipTests
+
+          sudo -n systemctl restart ghost-load-api
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error \
+              http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "Backend deployed successfully at $DEPLOY_SHA"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          sudo -n systemctl status ghost-load-api --no-pager
+          sudo -n journalctl -u ghost-load-api -n 100 --no-pager
+          exit 1
+          REMOTE

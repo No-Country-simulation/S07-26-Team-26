@@ -50,11 +50,13 @@ final class ReportHtmlTemplate {
     }
 
     String render(ReportData data) {
-        return """
-                <!doctype html>
-                <html lang="es">
+        String html = """
+                <?xml version="1.0" encoding="UTF-8"?>
+                <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+                  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+                <html xmlns="http://www.w3.org/1999/xhtml" lang="es">
                 <head>
-                  <meta charset="utf-8">
+                  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
                   <style>
                     @page { size: A4; margin: 0; }
                     * { box-sizing: border-box; }
@@ -72,12 +74,12 @@ final class ReportHtmlTemplate {
                                      margin:0 0 14px; }
                     .label { color:#66736e; font-size:11px; text-transform:uppercase; }
                     .value { font-size:14px; font-weight:bold; color:#153c32; }
-                    .kpi-table { width:100%; border-collapse:collapse; }
+                    .kpi-table { width:100%%; border-collapse:collapse; }
                     .kpi-table td { padding:8px 12px; border:1px solid #eee8d8;
-                                    vertical-align:top; width:50%; }
-                    .benchmark-head { width:100%; border-collapse:collapse; }
+                                    vertical-align:top; width:50%%; }
+                    .benchmark-head { width:100%%; border-collapse:collapse; }
                     .score-box { background:#153c32; border-radius:6px; padding:16px;
-                                 text-align:center; width:38%; vertical-align:middle; }
+                                 text-align:center; width:38%%; vertical-align:middle; }
                     .score-number { font-size:40px; font-weight:bold; color:#d8b75b; }
                     .score-unit { font-size:11px; color:#cfded8; }
                     .bench-detail { padding-left:20px; vertical-align:middle; }
@@ -85,8 +87,8 @@ final class ReportHtmlTemplate {
                                       font-weight:bold; padding:4px 12px; border-radius:4px;
                                       font-size:12px; }
                     .module-row td { padding:7px 4px; vertical-align:middle; }
-                    .module-label { font-weight:bold; color:#153c32; width:42%; }
-                    .module-value { text-align:right; color:#153c32; width:10%; }
+                    .module-label { font-weight:bold; color:#153c32; width:42%%; }
+                    .module-value { text-align:right; color:#153c32; width:10%%; }
                     .bar-track { background:#e9e3d3; border-radius:3px; height:10px; }
                     .bar-fill { background:#d8b75b; height:10px; border-radius:3px; }
                     .founder-box { background:#f6f3ea; border:1px solid #ddd6c5;
@@ -101,7 +103,7 @@ final class ReportHtmlTemplate {
                   <div class="header">
                     <table width="100%%" cellspacing="0" cellpadding="0">
                       <tr>
-                        <td>%s</td>
+                        <td>__LOGO__</td>
                         <td align="right">
                           <div style="font-size:20px;font-weight:bold;color:#ffffff">Ghost Load</div>
                           <div class="tagline">Intelligence for AI Data Centers</div>
@@ -115,15 +117,15 @@ final class ReportHtmlTemplate {
                       <p class="section-title">Empresa y operador</p>
                       <table class="kpi-table" cellspacing="0" cellpadding="0">
                         <tr>
-                          <td><span class="label">Empresa</span><br><span class="value">%s</span></td>
-                          <td><span class="label">Operador</span><br><span class="value">%s</span></td>
+                          <td><span class="label">Empresa</span><br /><span class="value">__COMPANY__</span></td>
+                          <td><span class="label">Operador</span><br /><span class="value">__FULL_NAME__</span></td>
                         </tr>
                         <tr>
-                          <td><span class="label">Cargo</span><br><span class="value">%s</span></td>
-                          <td><span class="label">País</span><br><span class="value">%s</span></td>
+                          <td><span class="label">Cargo</span><br /><span class="value">__POSITION__</span></td>
+                          <td><span class="label">País</span><br /><span class="value">__COUNTRY__</span></td>
                         </tr>
                         <tr>
-                          <td colspan="2"><span class="label">Email</span><br><span class="value">%s</span></td>
+                          <td colspan="2"><span class="label">Email</span><br /><span class="value">__EMAIL__</span></td>
                         </tr>
                       </table>
                     </div>
@@ -132,19 +134,19 @@ final class ReportHtmlTemplate {
                       <p class="section-title">KPIs de la calculadora</p>
                       <table class="kpi-table" cellspacing="0" cellpadding="0">
                         <tr>
-                          <td><span class="label">Capacidad total</span><br><span class="value">%s</span></td>
-                          <td><span class="label">Capacidad productiva</span><br><span class="value">%s</span></td>
+                          <td><span class="label">Capacidad total</span><br /><span class="value">__TOTAL_CAPACITY__</span></td>
+                          <td><span class="label">Capacidad productiva</span><br /><span class="value">__PRODUCTIVE_CAPACITY__</span></td>
                         </tr>
                         <tr>
-                          <td><span class="label">Capacidad no productiva</span><br><span class="value">%s</span></td>
-                          <td><span class="label">Utilización</span><br><span class="value">%s</span></td>
+                          <td><span class="label">Capacidad no productiva</span><br /><span class="value">__NON_PRODUCTIVE_CAPACITY__</span></td>
+                          <td><span class="label">Utilización</span><br /><span class="value">__UTILIZATION__</span></td>
                         </tr>
                         <tr>
-                          <td><span class="label">Capacidad no productiva</span><br><span class="value">%s</span></td>
-                          <td><span class="label">Costo mensual por kW</span><br><span class="value">%s</span></td>
+                          <td><span class="label">Capacidad no productiva</span><br /><span class="value">__NON_PRODUCTIVE_PERCENT__</span></td>
+                          <td><span class="label">Costo mensual por kW</span><br /><span class="value">__MONTHLY_COST__</span></td>
                         </tr>
                         <tr>
-                          <td colspan="2"><span class="label">Costo anual estimado de capacidad desperdiciada</span><br><span class="value">%s</span></td>
+                          <td colspan="2"><span class="label">Costo anual estimado de capacidad desperdiciada</span><br /><span class="value">__ANNUAL_COST__</span></td>
                         </tr>
                       </table>
                     </div>
@@ -154,17 +156,17 @@ final class ReportHtmlTemplate {
                       <table class="benchmark-head" cellspacing="0" cellpadding="0">
                         <tr>
                           <td class="score-box">
-                            <div class="score-number">%s</div>
+                            <div class="score-number">__TOTAL_SCORE__</div>
                             <div class="score-unit">/ 100 puntos</div>
                           </td>
                           <td class="bench-detail">
-                            <div style="margin-bottom:6px"><span class="label">Nivel de madurez</span><br><span class="maturity-badge">%s</span></div>
-                            <div><span class="label">Posición vs. industria</span><br><span class="value">Percentil %s</span></div>
+                            <div style="margin-bottom:6px"><span class="label">Nivel de madurez</span><br /><span class="maturity-badge">__MATURITY__</span></div>
+                            <div><span class="label">Posición vs. industria</span><br /><span class="value">Percentil __PERCENTILE__</span></div>
                           </td>
                         </tr>
                       </table>
                       <table class="module-row" width="100%%" cellspacing="0" cellpadding="0" style="margin-top:16px">
-                        %s
+                        __MODULE_ROWS__
                       </table>
                     </div>
 
@@ -172,16 +174,16 @@ final class ReportHtmlTemplate {
                       <p class="section-title">Hablemos de tu capacidad desperdiciada</p>
                       <div class="founder-box">
                         <table width="100%%" cellspacing="0" cellpadding="0">
-                          %s
+                          __FOUNDER_ROWS__
                         </table>
-                        %s
+                        __CTA__
                       </div>
                     </div>
                   </div>
 
                   <div class="footer">
                     <p style="margin:0">
-                      Reporte generado el %s para %s.
+                      Reporte generado el __DATE__ para __COMPANY_NAME__.
                       El percentil es una referencia del MVP y se actualizará con datos agregados
                       de la industria cuando exista una muestra suficiente.
                       Este documento contiene información confidencial de tu infraestructura.
@@ -189,28 +191,28 @@ final class ReportHtmlTemplate {
                   </div>
                 </body>
                 </html>
-                """.formatted(
-                logoMarkup(),
-                esc(data.operator().companyName()),
-                esc(data.operator().fullName()),
-                esc(data.operator().position()),
-                esc(data.operator().country()),
-                esc(data.operator().email()),
-                mw(data.calculator().totalCapacityMw()),
-                mw(data.calculator().productiveCapacityMw()),
-                mw(data.calculator().nonProductiveCapacityMw()),
-                percent(data.calculator().utilizationPercentage()),
-                percent(data.calculator().nonProductivePercentage()),
-                money(data.calculator().monthlyCostPerKw()),
-                money(data.calculator().estimatedAnnualCost()) + " " + esc(data.calculator().currency()),
-                number(data.benchmark().totalScore()),
-                maturityLabel(data.benchmark().maturityLevel()),
-                number(data.benchmark().percentile()),
-                moduleRows(data.benchmark().moduleScores()),
-                founderRows(),
-                ctaMarkup(),
-                formatDate(data.benchmark().completedAt()),
-                esc(data.operator().companyName()));
+                """;
+        return html.replace("__LOGO__", logoMarkup())
+                .replace("__COMPANY__", esc(data.operator().companyName()))
+                .replace("__FULL_NAME__", esc(data.operator().fullName()))
+                .replace("__POSITION__", esc(data.operator().position()))
+                .replace("__COUNTRY__", esc(data.operator().country()))
+                .replace("__EMAIL__", esc(data.operator().email()))
+                .replace("__TOTAL_CAPACITY__", mw(data.calculator().totalCapacityMw()))
+                .replace("__PRODUCTIVE_CAPACITY__", mw(data.calculator().productiveCapacityMw()))
+                .replace("__NON_PRODUCTIVE_CAPACITY__", mw(data.calculator().nonProductiveCapacityMw()))
+                .replace("__UTILIZATION__", percent(data.calculator().utilizationPercentage()))
+                .replace("__NON_PRODUCTIVE_PERCENT__", percent(data.calculator().nonProductivePercentage()))
+                .replace("__MONTHLY_COST__", money(data.calculator().monthlyCostPerKw()))
+                .replace("__ANNUAL_COST__", money(data.calculator().estimatedAnnualCost()) + " " + esc(data.calculator().currency()))
+                .replace("__TOTAL_SCORE__", number(data.benchmark().totalScore()))
+                .replace("__MATURITY__", maturityLabel(data.benchmark().maturityLevel()))
+                .replace("__PERCENTILE__", number(data.benchmark().percentile()))
+                .replace("__MODULE_ROWS__", moduleRows(data.benchmark().moduleScores()))
+                .replace("__FOUNDER_ROWS__", founderRows())
+                .replace("__CTA__", ctaMarkup())
+                .replace("__DATE__", formatDate(data.benchmark().completedAt()))
+                .replace("__COMPANY_NAME__", esc(data.operator().companyName()));
     }
 
     private String moduleRows(java.util.List<ModuleScore> scores) {
@@ -218,25 +220,22 @@ final class ReportHtmlTemplate {
         for (ModuleScore score : scores) {
             String label = MODULE_LABELS.getOrDefault(score.module(), score.module().name());
             double value = score.score();
-            rows.append("""
-                            <tr class="module-row">
-                              <td class="module-label">%s</td>
-                              <td class="module-value">%s</td>
-                            </tr>
-                            <tr>
-                              <td colspan="2">
-                                <table width="100%%" cellspacing="0" cellpadding="0" class="bar-track">
-                                  <tr>
-                                    <td width="%s%%" class="bar-fill"></td>
-                                    <td></td>
-                                  </tr>
-                                </table>
-                              </td>
-                            </tr>
-                            """.formatted(
-                    esc(label),
-                    number(value),
-                    String.format(Locale.ROOT, "%.1f", Math.max(0, Math.min(100, value)))));
+            rows.append("<tr class=\"module-row\">")
+                    .append("<td class=\"module-label\">").append(esc(label)).append("</td>")
+                    .append("<td class=\"module-value\">").append(number(value)).append("</td>")
+                    .append("</tr>")
+                    .append("<tr>")
+                    .append("<td colspan=\"2\">")
+                    .append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" class=\"bar-track\">")
+                    .append("<tr>")
+                    .append("<td width=\"")
+                    .append(String.format(Locale.ROOT, "%.1f", Math.max(0, Math.min(100, value))))
+                    .append("%\" class=\"bar-fill\"></td>")
+                    .append("<td></td>")
+                    .append("</tr>")
+                    .append("</table>")
+                    .append("</td>")
+                    .append("</tr>");
         }
         return rows.toString();
     }
@@ -254,12 +253,14 @@ final class ReportHtmlTemplate {
         if (value == null || value.isBlank()) {
             return;
         }
-        rows.append("""
-                        <tr>
-                          <td style="width:30%%"><span class="label">%s</span></td>
-                          <td><span class="value">%s</span></td>
-                        </tr>
-                        """.formatted(esc(label), esc(value)));
+        rows.append("<tr>")
+                .append("<td style=\"width:30%\"><span class=\"label\">")
+                .append(esc(label))
+                .append("</span></td>")
+                .append("<td><span class=\"value\">")
+                .append(esc(value))
+                .append("</span></td>")
+                .append("</tr>");
     }
 
     private String ctaMarkup() {
@@ -280,7 +281,7 @@ final class ReportHtmlTemplate {
                     String mime = mimeFor(file.getName());
                     String dataUri = "data:" + mime + ";base64,"
                             + Base64.getEncoder().encodeToString(bytes);
-                    return "<img src=\"" + dataUri + "\" alt=\"Ghost Load\" style=\"height:52px;width:auto\">";
+                    return "<img src=\"" + dataUri + "\" alt=\"Ghost Load\" style=\"height:52px;width:auto\" />";
                 } catch (IOException exception) {
                     LOGGER.warn("No se pudo leer el logo configurado: {}", logoPath);
                 }

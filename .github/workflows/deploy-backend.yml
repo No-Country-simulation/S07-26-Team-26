@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - develop
+      - codex/deploy-backend-develop
   pull_request:
     branches:
       - develop
@@ -49,7 +50,7 @@ jobs:
 
   deploy:
     name: Deploy tested backend
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/develop'
     needs: test-and-build
     runs-on: ubuntu-latest
     timeout-minutes: 10

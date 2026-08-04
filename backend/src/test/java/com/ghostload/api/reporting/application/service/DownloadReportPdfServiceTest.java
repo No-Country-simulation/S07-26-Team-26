@@ -1,4 +1,4 @@
-﻿package com.ghostload.api.reporting.application.service;
+package com.ghostload.api.reporting.application.service;
 
 import com.ghostload.api.assessment.application.port.out.LoadEvaluationPort;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;

@@ -1,4 +1,4 @@
-﻿package com.ghostload.api.reporting.application.service;
+package com.ghostload.api.reporting.application.service;
 
 import com.ghostload.api.assessment.domain.model.BenchmarkModule;
 import com.ghostload.api.assessment.domain.model.MaturityLevel;

@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - develop
+  pull_request:
+    branches:
+      - develop
   workflow_dispatch:
 
 permissions:
@@ -14,12 +17,49 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Test, build, and deploy backend
+  test-and-build:
+    name: Test and build backend
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
 
     steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+
+      - name: Run tests and build JAR
+        working-directory: backend
+        run: mvn --batch-mode --no-transfer-progress clean verify
+
+      - name: Upload tested JAR
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-load-api-${{ github.sha }}
+          path: backend/target/ghost-load-api-0.0.1-SNAPSHOT.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy tested backend
+    if: github.event_name != 'pull_request'
+    needs: test-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Download tested JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: ghost-load-api-${{ github.sha }}
+
       - name: Validate deployment secrets
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
@@ -41,7 +81,19 @@ jobs:
           printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Deploy pushed commit
+      - name: Upload tested JAR to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          scp \
+            -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            ghost-load-api-0.0.1-SNAPSHOT.jar \
+            "ubuntu@$EC2_HOST:/tmp/ghost-load-api-$GITHUB_SHA.jar"
+
+      - name: Activate tested JAR
         env:
           EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
@@ -58,15 +110,16 @@ jobs:
             (*[!0-9a-f]*|'') echo "Invalid commit SHA" >&2; exit 1 ;;
           esac
 
-          cd /home/ubuntu/S07-26-Team-26
-          git fetch origin develop
-          git merge-base --is-ancestor "$DEPLOY_SHA" origin/develop
-          git checkout develop
-          git merge --ff-only "$DEPLOY_SHA"
+          jar_path=/home/ubuntu/S07-26-Team-26/backend/target/ghost-load-api-0.0.1-SNAPSHOT.jar
+          uploaded_path=/tmp/ghost-load-api-$DEPLOY_SHA.jar
+          backup_path=/tmp/ghost-load-api-previous.jar
 
-          cd backend
-          MAVEN_OPTS='-Xmx448m -XX:MaxMetaspaceSize=160m' \
-            mvn --batch-mode --no-transfer-progress clean verify
+          test -s "$uploaded_path"
+          if test -f "$jar_path"; then
+            cp "$jar_path" "$backup_path"
+          fi
+          install -m 0644 "$uploaded_path" "$jar_path"
+          rm -f "$uploaded_path"
 
           sudo -n systemctl restart ghost-load-api
 
@@ -74,12 +127,19 @@ jobs:
             if curl --fail --silent --show-error \
               http://127.0.0.1:8080/actuator/health | grep -q '"status":"UP"'; then
               echo "Backend deployed successfully at $DEPLOY_SHA"
+              rm -f "$backup_path"
               exit 0
             fi
             sleep 2
           done
 
-          sudo -n systemctl status ghost-load-api --no-pager
-          sudo -n journalctl -u ghost-load-api -n 100 --no-pager
+          echo "Health check failed; restoring previous JAR" >&2
+          if test -f "$backup_path"; then
+            install -m 0644 "$backup_path" "$jar_path"
+            rm -f "$backup_path"
+            sudo -n systemctl restart ghost-load-api
+          fi
+          sudo -n systemctl status ghost-load-api --no-pager || true
+          sudo -n journalctl -u ghost-load-api -n 100 --no-pager || true
           exit 1
           REMOTE

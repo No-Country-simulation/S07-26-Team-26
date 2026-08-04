@@ -299,6 +299,40 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/v1/evaluations/{evaluationId}/report/download:
+    parameters:
+      - $ref: '#/components/parameters/EvaluationId'
+    get:
+      tags: [Reports]
+      summary: Descargar el PDF del reporte (archivo)
+      operationId: downloadReport
+      description: |
+        Devuelve el PDF institucional como archivo binario. Requiere el header
+        `X-Evaluation-Token` de la evaluación. Devuelve 409 mientras el reporte
+        está en proceso o si falló su generación.
+      security:
+        - evaluationToken: []
+      responses:
+        '200':
+          description: PDF del reporte
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: El reporte está en proceso o falló su generación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
   /api/v1/evaluations/{evaluationId}/report/retry:
     parameters:
       - $ref: '#/components/parameters/EvaluationId'

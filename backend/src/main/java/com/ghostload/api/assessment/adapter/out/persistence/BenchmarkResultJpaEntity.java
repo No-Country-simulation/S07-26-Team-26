@@ -19,4 +19,11 @@ public class BenchmarkResultJpaEntity {
         this.evaluationId = evaluationId; this.questionnaireVersion = questionnaireVersion; this.totalScore = totalScore;
         this.maturityLevel = maturityLevel; this.percentile = percentile; this.completedAt = completedAt;
     }
+
+    public UUID getEvaluationId() { return evaluationId; }
+    public String getQuestionnaireVersion() { return questionnaireVersion; }
+    public double getTotalScore() { return totalScore; }
+    public String getMaturityLevel() { return maturityLevel; }
+    public double getPercentile() { return percentile; }
+    public Instant getCompletedAt() { return completedAt; }
 }

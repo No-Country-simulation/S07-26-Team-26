@@ -5,6 +5,7 @@ import com.ghostload.api.assessment.application.port.out.*;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
 import com.ghostload.api.assessment.domain.model.*;
 import com.ghostload.api.outreach.application.port.in.CompleteInvitationUseCase;
+import com.ghostload.api.reporting.application.port.in.GenerateReportPdfUseCase;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
@@ -17,12 +18,14 @@ public class SubmitBenchmarkService implements SubmitBenchmarkUseCase {
     private final LoadBenchmarkQuestionsPort questions;
     private final SaveBenchmarkResultPort results;
     private final CompleteInvitationUseCase completeInvitation;
+    private final GenerateReportPdfUseCase generateReportPdf;
     private final Clock clock;
     public SubmitBenchmarkService(LoadEvaluationPort evaluations, SaveEvaluationPort saveEvaluation,
                                   LoadBenchmarkQuestionsPort questions, SaveBenchmarkResultPort results,
-                                  CompleteInvitationUseCase completeInvitation, Clock clock) {
+                                  CompleteInvitationUseCase completeInvitation,
+                                  GenerateReportPdfUseCase generateReportPdf, Clock clock) {
         this.evaluations = evaluations; this.saveEvaluation = saveEvaluation; this.questions = questions; this.results = results;
-        this.completeInvitation = completeInvitation; this.clock = clock;
+        this.completeInvitation = completeInvitation; this.generateReportPdf = generateReportPdf; this.clock = clock;
     }
     @Override @Transactional public BenchmarkResult submit(SubmitBenchmarkCommand command) {
         Evaluation evaluation = evaluations.findById(EvaluationId.of(command.evaluationId()))
@@ -34,6 +37,7 @@ public class SubmitBenchmarkService implements SubmitBenchmarkUseCase {
         results.save(command.evaluationId(), command.questionnaireVersion(), command.answers(), result);
         saveEvaluation.save(evaluation);
         completeInvitation.complete(command.evaluationId(), clock.instant());
+        generateReportPdf.queue(command.evaluationId());
         return result;
     }
 }

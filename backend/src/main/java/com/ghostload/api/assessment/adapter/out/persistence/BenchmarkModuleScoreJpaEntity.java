@@ -14,4 +14,9 @@ public class BenchmarkModuleScoreJpaEntity {
     public BenchmarkModuleScoreJpaEntity(UUID evaluationId, String moduleCode, double score) {
         this.id = UUID.randomUUID(); this.evaluationId = evaluationId; this.moduleCode = moduleCode; this.score = score;
     }
+
+    public UUID getId() { return id; }
+    public UUID getEvaluationId() { return evaluationId; }
+    public String getModuleCode() { return moduleCode; }
+    public double getScore() { return score; }
 }

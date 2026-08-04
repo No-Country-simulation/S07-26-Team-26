@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Build and deploy backend
+    name: Test, build, and deploy backend
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -66,7 +66,7 @@ jobs:
 
           cd backend
           MAVEN_OPTS='-Xmx448m -XX:MaxMetaspaceSize=160m' \
-            mvn --batch-mode --no-transfer-progress clean package -DskipTests
+            mvn --batch-mode --no-transfer-progress clean verify
 
           sudo -n systemctl restart ghost-load-api
 

@@ -185,6 +185,43 @@ class GenerateReportPdfServiceTest {
     }
 
     @Test
+    void shouldKeepPdfGeneratedWhenEmailFails() {
+        UUID evaluationId = UUID.randomUUID();
+        AtomicReference<GeneratedPdf> saved = new AtomicReference<>();
+        GeneratedPdfPersistencePort persistence = new InMemoryPersistence() {
+            @Override
+            public Optional<PendingPdf> claim(Instant now, Instant staleBefore) {
+                return Optional.of(new PendingPdf(UUID.randomUUID(), evaluationId, 1));
+            }
+
+            @Override
+            public Optional<GeneratedPdf> findByEvaluationId(UUID id) {
+                return Optional.of(claimedPdf(id, 1));
+            }
+
+            @Override
+            public void save(GeneratedPdf pdf) {
+                saved.set(pdf);
+            }
+        };
+        GenerateReportPdfService service = new GenerateReportPdfService(
+                persistence,
+                data -> reportData(evaluationId),
+                data -> new byte[]{10, 20, 30},
+                storing("Test_Data_Center_Maturity_Report.pdf"),
+                email -> {
+                    throw new IllegalStateException("SMTP no disponible");
+                },
+                CLOCK,
+                PROPERTIES);
+
+        service.processBatch(1);
+
+        assertThat(saved.get().status()).isEqualTo(PdfStatus.GENERATED);
+        assertThat(saved.get().lastError()).isNull();
+    }
+
+    @Test
     void shouldRejectInvalidBatchSize() {
         GenerateReportPdfService service = new GenerateReportPdfService(
                 new InMemoryPersistence(),

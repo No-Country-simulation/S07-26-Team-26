@@ -96,6 +96,17 @@ public final class GenerateReportPdfService implements GenerateReportPdfUseCase 
                     downloadUrlFor(pending.evaluationId()),
                     clock.instant());
             persistence.save(pdf);
+            sendReportByEmail(data, pdf, content);
+            LOGGER.info("Reporte generado para la evaluación {}.", pending.evaluationId());
+        } catch (RuntimeException exception) {
+            handleFailure(pdf, exception, now);
+        }
+    }
+
+    // El PDF queda GENERATED y descargable aunque el envío del email falle:
+    // el correo se intenta en un paso separado para no bloquear la descarga.
+    private void sendReportByEmail(ReportData data, GeneratedPdf pdf, byte[] content) {
+        try {
             emailSender.send(new SendReportEmailPort.ReportEmail(
                     data.operator().email(),
                     data.operator().fullName(),
@@ -104,9 +115,9 @@ public final class GenerateReportPdfService implements GenerateReportPdfUseCase 
                             + ". Adjuntamos tu reporte institucional con el resultado del benchmark.",
                     content,
                     pdf.fileName()));
-            LOGGER.info("Reporte generado para la evaluación {}.", pending.evaluationId());
-        } catch (RuntimeException exception) {
-            handleFailure(pdf, exception, now);
+        } catch (RuntimeException emailException) {
+            LOGGER.warn("El reporte {} se generó, pero no se pudo enviar por email: {}",
+                    pdf.evaluationId(), emailException.getMessage());
         }
     }
 

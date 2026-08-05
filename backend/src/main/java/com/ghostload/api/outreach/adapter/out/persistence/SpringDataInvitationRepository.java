@@ -10,9 +10,25 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-interface SpringDataInvitationRepository extends JpaRepository<InvitationJpaEntity, UUID> {
+public interface SpringDataInvitationRepository extends JpaRepository<InvitationJpaEntity, UUID> {
 
     List<InvitationJpaEntity> findAllByCampaignIdOrderByCreatedAtAsc(UUID campaignId);
+
+    @Query("""
+            select count(invitation)
+              from InvitationJpaEntity invitation
+             where invitation.sentAt is not null
+               and (:campaignId is null or invitation.campaignId = :campaignId)
+            """)
+    long countSent(@Param("campaignId") UUID campaignId);
+
+    @Query("""
+            select count(invitation)
+              from InvitationJpaEntity invitation
+             where invitation.visitedAt is not null
+               and (:campaignId is null or invitation.campaignId = :campaignId)
+            """)
+    long countVisited(@Param("campaignId") UUID campaignId);
 
     @Query("""
             select invitation.id as invitationId,

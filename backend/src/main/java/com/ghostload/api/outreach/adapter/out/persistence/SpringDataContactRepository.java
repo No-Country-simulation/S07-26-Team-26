@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-interface SpringDataContactRepository extends JpaRepository<ContactJpaEntity, UUID> {
+public interface SpringDataContactRepository extends JpaRepository<ContactJpaEntity, UUID> {
 
     @Query("""
             select contact

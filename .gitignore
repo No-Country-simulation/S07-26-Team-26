@@ -18,6 +18,7 @@ node_modules/
 !.env.example
 application-local.properties
 application-*.local.properties
+*.pem
 
 # Operating system files
 .DS_Store

@@ -45,6 +45,27 @@ public interface SpringDataInvitationRepository extends JpaRepository<Invitation
     List<CampaignRecipientView> findRecipientsByCampaignId(
             @Param("campaignId") UUID campaignId);
 
+    @Query("""
+            select invitation.id as invitationId,
+                   contact.firstName as firstName,
+                   contact.lastName as lastName,
+                   contact.email as email,
+                   invitation.status as invitationStatus,
+                   invitation.sentAt as sentAt,
+                   invitation.visitedAt as visitedAt,
+                   invitation.startedAt as startedAt,
+                   invitation.completedAt as completedAt,
+                   invitation.failedAt as failedAt,
+                   invitation.failureReason as failureReason,
+                   invitation.createdAt as createdAt
+              from InvitationJpaEntity invitation
+              join ContactJpaEntity contact on contact.id = invitation.contactId
+             where invitation.campaignId = :campaignId
+             order by invitation.createdAt
+            """)
+    List<InvitationTrackingView> findTrackingByCampaignId(
+            @Param("campaignId") UUID campaignId);
+
     @Modifying
     @Query("""
             update InvitationJpaEntity invitation
@@ -88,5 +109,32 @@ public interface SpringDataInvitationRepository extends JpaRepository<Invitation
         String getLastName();
 
         String getEmail();
+    }
+
+    interface InvitationTrackingView {
+
+        UUID getInvitationId();
+
+        String getFirstName();
+
+        String getLastName();
+
+        String getEmail();
+
+        InvitationStatus getInvitationStatus();
+
+        Instant getSentAt();
+
+        Instant getVisitedAt();
+
+        Instant getStartedAt();
+
+        Instant getCompletedAt();
+
+        Instant getFailedAt();
+
+        String getFailureReason();
+
+        Instant getCreatedAt();
     }
 }

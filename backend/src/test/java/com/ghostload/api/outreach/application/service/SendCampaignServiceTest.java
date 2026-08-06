@@ -16,6 +16,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,6 +97,36 @@ class SendCampaignServiceTest {
         assertThatThrownBy(() -> service.send(new SendCampaignCommand(campaign.id())))
                 .isInstanceOf(InvalidCampaignStateException.class);
         assertThat(campaign.status()).isEqualTo(CampaignStatus.READY);
+    }
+
+    @Test
+    void shouldNotDuplicateEmailsOnRetryAfterQueueing() {
+        Campaign campaign = readyCampaign(null);
+        AtomicInteger queueCalls = new AtomicInteger();
+        SendCampaignService service = new SendCampaignService(
+                ignored -> Optional.of(new LoadCampaignDeliveryPort.CampaignDelivery(
+                        campaign,
+                        List.of(recipient(InvitationStatus.UPLOADED)))),
+                (queuedCampaign, emails) -> queueCalls.incrementAndGet(),
+                CLOCK);
+
+        // Primer envío: encola los correos y deja la campaña en SENDING.
+        service.send(new SendCampaignCommand(campaign.id()));
+        assertThat(queueCalls.get()).isEqualTo(1);
+
+        // Un retry de envío con las invitations YA procesadas (SENT) no debe
+        // volver a encolar: se rechaza y no se duplican invitations/correos.
+        SendCampaignService retryService = new SendCampaignService(
+                ignored -> Optional.of(new LoadCampaignDeliveryPort.CampaignDelivery(
+                        campaign,
+                        List.of(recipient(InvitationStatus.SENT)))),
+                (queuedCampaign, emails) -> queueCalls.incrementAndGet(),
+                CLOCK);
+
+        assertThatThrownBy(() -> retryService.send(new SendCampaignCommand(campaign.id())))
+                .isInstanceOf(InvalidCampaignStateException.class);
+        assertThat(queueCalls.get()).isEqualTo(1);
+        assertThat(campaign.status()).isEqualTo(CampaignStatus.SENDING);
     }
 
     private Campaign readyCampaign(Instant scheduledAt) {

@@ -43,7 +43,7 @@ class ContactImportControllerTest {
                     Instant.parse("2026-07-26T12:00:00Z"));
         };
         ContactImportController controller =
-                new ContactImportController(useCase, new ContactImportWebMapper());
+                new ContactImportController(useCase, () -> List.of(), new ContactImportWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

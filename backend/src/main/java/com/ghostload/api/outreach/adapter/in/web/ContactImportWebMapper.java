@@ -1,6 +1,7 @@
 package com.ghostload.api.outreach.adapter.in.web;
 
 import com.ghostload.api.outreach.application.port.in.ImportContactsResult;
+import com.ghostload.api.outreach.domain.model.ContactImport;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,5 +26,17 @@ public class ContactImportWebMapper {
                                 issue.message()))
                         .toList(),
                 result.createdAt());
+    }
+
+    ContactImportSummaryResponse toSummaryResponse(ContactImport contactImport) {
+        return new ContactImportSummaryResponse(
+                contactImport.id(),
+                contactImport.name(),
+                contactImport.status().name(),
+                contactImport.totalRows(),
+                contactImport.validContacts(),
+                contactImport.duplicates(),
+                contactImport.invalidRows(),
+                contactImport.createdAt());
     }
 }

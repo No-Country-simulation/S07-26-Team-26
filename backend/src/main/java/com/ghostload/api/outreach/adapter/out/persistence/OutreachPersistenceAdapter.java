@@ -2,6 +2,9 @@ package com.ghostload.api.outreach.adapter.out.persistence;
 
 import com.ghostload.api.outreach.application.port.out.LoadCampaignAudiencePort;
 import com.ghostload.api.outreach.application.port.out.LoadCampaignDeliveryPort;
+import com.ghostload.api.outreach.application.port.out.LoadCampaignTrackingPort;
+import com.ghostload.api.outreach.application.port.out.ListCampaignsPort;
+import com.ghostload.api.outreach.application.port.out.ListContactImportsPort;
 import com.ghostload.api.outreach.application.port.out.LoadExistingContactsPort;
 import com.ghostload.api.outreach.application.port.out.QueueCampaignEmailsPort;
 import com.ghostload.api.outreach.application.port.out.SaveCampaignPort;
@@ -31,7 +34,10 @@ public class OutreachPersistenceAdapter
         LoadCampaignAudiencePort,
         SaveCampaignPort,
         LoadCampaignDeliveryPort,
-        QueueCampaignEmailsPort {
+        QueueCampaignEmailsPort,
+        ListContactImportsPort,
+        ListCampaignsPort,
+        LoadCampaignTrackingPort {
 
     private final SpringDataContactImportRepository contactImportRepository;
     private final SpringDataContactRepository contactRepository;
@@ -130,6 +136,35 @@ public class OutreachPersistenceAdapter
                     "La campaña ya fue enviada o está siendo procesada.");
         }
         emailOutboxRepository.saveAll(emails.stream().map(this::toEntity).toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContactImport> findImportsOrderByCreatedAtDesc() {
+        return contactImportRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Campaign> findCampaignsOrderByCreatedAtDesc() {
+        return campaignRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<LoadCampaignTrackingPort.CampaignTracking> loadTracking(UUID campaignId) {
+        return campaignRepository.findById(campaignId)
+                .map(campaign -> new LoadCampaignTrackingPort.CampaignTracking(
+                        toDomain(campaign),
+                        invitationRepository
+                                .findTrackingByCampaignId(campaignId)
+                                .stream()
+                                .map(this::toTracking)
+                                .toList()));
     }
 
     private ContactImportJpaEntity toEntity(ContactImport contactImport) {
@@ -246,5 +281,22 @@ public class OutreachPersistenceAdapter
                 recipient.getFirstName(),
                 recipient.getLastName(),
                 recipient.getEmail());
+    }
+
+    private LoadCampaignTrackingPort.InvitationTracking toTracking(
+            SpringDataInvitationRepository.InvitationTrackingView tracking) {
+        return new LoadCampaignTrackingPort.InvitationTracking(
+                tracking.getInvitationId(),
+                tracking.getFirstName(),
+                tracking.getLastName(),
+                tracking.getEmail(),
+                tracking.getInvitationStatus(),
+                tracking.getSentAt(),
+                tracking.getVisitedAt(),
+                tracking.getStartedAt(),
+                tracking.getCompletedAt(),
+                tracking.getFailedAt(),
+                tracking.getFailureReason(),
+                tracking.getCreatedAt());
     }
 }

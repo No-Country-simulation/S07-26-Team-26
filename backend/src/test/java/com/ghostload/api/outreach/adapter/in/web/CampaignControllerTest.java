@@ -13,6 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,6 +50,8 @@ class CampaignControllerTest {
                         command -> {
                             throw new AssertionError("No debe enviarse la campaña.");
                         },
+                        () -> List.of(),
+                        ignored -> Optional.empty(),
                         new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -87,6 +91,8 @@ class CampaignControllerTest {
                         command -> {
                             throw new AssertionError("No debe enviarse la campaña.");
                         },
+                        () -> List.of(),
+                        ignored -> Optional.empty(),
                         new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -123,6 +129,8 @@ class CampaignControllerTest {
                     throw new AssertionError("No debe crearse una campaña.");
                 },
                 sendUseCase,
+                () -> List.of(),
+                ignored -> Optional.empty(),
                 new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())

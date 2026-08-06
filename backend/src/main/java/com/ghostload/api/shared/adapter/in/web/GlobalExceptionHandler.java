@@ -3,6 +3,8 @@ package com.ghostload.api.shared.adapter.in.web;
 import com.ghostload.api.administration.domain.exception.InvalidAdminCredentialsException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationStateException;
 import com.ghostload.api.assessment.domain.exception.InvalidEvaluationTokenException;
+import com.ghostload.api.crm.domain.exception.InvalidPipelineTransitionException;
+import com.ghostload.api.crm.domain.exception.PipelineEntryNotFoundException;
 import com.ghostload.api.outreach.domain.exception.ContactFileTooLargeException;
 import com.ghostload.api.outreach.domain.exception.CampaignNotFoundException;
 import com.ghostload.api.outreach.domain.exception.InvalidCampaignException;
@@ -149,6 +151,34 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.CONFLICT.value(),
                 "INVALID_CAMPAIGN_STATE",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(PipelineEntryNotFoundException.class)
+    ResponseEntity<ApiErrorResponse> handlePipelineNotFound(
+            PipelineEntryNotFoundException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "PIPELINE_ENTRY_NOT_FOUND",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    @ExceptionHandler(InvalidPipelineTransitionException.class)
+    ResponseEntity<ApiErrorResponse> handleInvalidPipelineTransition(
+            InvalidPipelineTransitionException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "INVALID_PIPELINE_TRANSITION",
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

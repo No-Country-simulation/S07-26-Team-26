@@ -14,4 +14,6 @@ public class BenchmarkAnswerJpaEntity {
     public BenchmarkAnswerJpaEntity(UUID evaluationId, UUID questionId, int value) {
         this.id = UUID.randomUUID(); this.evaluationId = evaluationId; this.questionId = questionId; this.value = value;
     }
+    public UUID getQuestionId() { return questionId; }
+    public int getValue() { return value; }
 }

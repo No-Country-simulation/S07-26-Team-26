@@ -8,6 +8,8 @@ import java.util.UUID;
 public interface BenchmarkModuleScoreJpaRepository extends JpaRepository<BenchmarkModuleScoreJpaEntity, UUID> {
     void deleteByEvaluationId(UUID evaluationId);
 
+    List<BenchmarkModuleScoreJpaEntity> findByEvaluationId(UUID evaluationId);
+
     @Query("""
             select m.moduleCode as module, avg(m.score) as average
               from BenchmarkModuleScoreJpaEntity m

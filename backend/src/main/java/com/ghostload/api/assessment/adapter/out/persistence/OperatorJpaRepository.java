@@ -65,6 +65,52 @@ public interface OperatorJpaRepository extends JpaRepository<OperatorJpaEntity, 
             """)
     Optional<OperatorListView> findDetail(@Param("operatorId") UUID operatorId);
 
+    @Query("""
+            select o.id as operatorId,
+                   o.firstName as firstName,
+                   o.lastName as lastName,
+                   o.email as email,
+                   o.companyName as companyName,
+                   e.id as evaluationId,
+                   r.totalScore as totalScore,
+                   r.percentile as percentile,
+                   r.maturityLevel as maturityLevel,
+                   r.completedAt as completedAt
+              from BenchmarkResultJpaEntity r
+              join EvaluationJpaEntity e on e.id = r.evaluationId
+              join OperatorJpaEntity o on o.id = e.operatorId
+             where (cast(:from as Instant) is null or r.completedAt >= :from)
+               and (cast(:to as Instant) is null or r.completedAt <= :to)
+             order by r.completedAt desc
+            """)
+    Page<RecentResponseView> findRecentResponses(
+            @Param("from") Instant from,
+            @Param("to") Instant to,
+            Pageable pageable);
+
+    interface RecentResponseView {
+
+        UUID getOperatorId();
+
+        String getFirstName();
+
+        String getLastName();
+
+        String getEmail();
+
+        String getCompanyName();
+
+        UUID getEvaluationId();
+
+        double getTotalScore();
+
+        double getPercentile();
+
+        String getMaturityLevel();
+
+        Instant getCompletedAt();
+    }
+
     interface OperatorListView {
 
         UUID getOperatorId();

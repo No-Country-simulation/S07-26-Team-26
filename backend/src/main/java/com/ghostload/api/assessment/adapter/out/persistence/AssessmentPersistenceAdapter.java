@@ -10,8 +10,8 @@ import java.util.Optional;
 // CalculatorResultJpaRepository como nueva dependencia.
 @Component
 public class AssessmentPersistenceAdapter implements
-        LoadOperatorPort, SaveOperatorPort, SaveEvaluationPort,
-        LoadEvaluationPort, SaveCalculatorResultPort {
+        LoadOperatorPort, LoadOperatorByIdPort, SaveOperatorPort, SaveEvaluationPort,
+        LoadEvaluationPort, SaveCalculatorResultPort, LoadCalculatorResultPort {
 
     private final OperatorJpaRepository operatorJpaRepository;
     private final EvaluationJpaRepository evaluationJpaRepository;
@@ -28,6 +28,20 @@ public class AssessmentPersistenceAdapter implements
     @Override
     public Optional<Operator> findByEmail(Email email) {
         return operatorJpaRepository.findByEmail(email.value())
+                .map(entity -> Operator.reconstruct(
+                        OperatorId.of(entity.getId()),
+                        entity.getFirstName(),
+                        entity.getLastName(),
+                        new Email(entity.getEmail()),
+                        entity.getCompanyName(),
+                        entity.getPosition(),
+                        entity.getCountry()
+                ));
+    }
+
+    @Override
+    public Optional<Operator> findById(OperatorId id) {
+        return operatorJpaRepository.findById(id.value())
                 .map(entity -> Operator.reconstruct(
                         OperatorId.of(entity.getId()),
                         entity.getFirstName(),
@@ -96,5 +110,21 @@ public class AssessmentPersistenceAdapter implements
                 result.calculatedAt()
         );
         calculatorResultJpaRepository.save(entity);
+    }
+
+    @Override
+    public Optional<CalculatorResult> findByEvaluationId(EvaluationId evaluationId) {
+        return calculatorResultJpaRepository.findById(evaluationId.value())
+                .map(entity -> new CalculatorResult(
+                        entity.getTotalCapacityMw(),
+                        entity.getProductiveCapacityMw(),
+                        entity.getNonProductiveCapacityMw(),
+                        entity.getUtilizationPercentage(),
+                        entity.getNonProductivePercentage(),
+                        entity.getMonthlyCostPerKw(),
+                        entity.getEstimatedAnnualCost(),
+                        entity.getCurrency(),
+                        entity.getCalculatedAt()
+                ));
     }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useCounterStore } from '@/store/counterStore';
 import { 
@@ -96,6 +97,21 @@ export default function Home() {
             <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
               TypeScript
             </span>
+          </div>
+
+          <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+            <Link
+              href="/login"
+              className="rounded-2xl bg-indigo-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-indigo-400"
+            >
+              Iniciar sesión administrador
+            </Link>
+            <Link
+              href="/dashboard/admin"
+              className="rounded-2xl border border-slate-800 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:border-indigo-500 hover:text-white"
+            >
+              Ir a dashboard admin
+            </Link>
           </div>
         </header>
 

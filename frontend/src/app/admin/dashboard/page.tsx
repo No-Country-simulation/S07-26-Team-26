@@ -31,6 +31,12 @@ export default function AdminDashboardPage() {
     enabled: Boolean(accessToken),
   });
 
+  const { data: recentResponses } = useQuery({
+    queryKey: ['recent-responses'],
+    queryFn: () => apiClient.recentResponses(accessToken ?? '', { page: 0, size: 10 }),
+    enabled: Boolean(accessToken),
+  });
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -191,6 +197,57 @@ export default function AdminDashboardPage() {
           </ul>
         </section>
       </div>
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-white">Respuestas recientes</h2>
+          <span className="text-xs text-slate-500">Últimas evaluaciones completadas</span>
+        </div>
+        {recentResponses && recentResponses.items.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs text-slate-500 uppercase tracking-wider border-b border-slate-800">
+                  <th className="py-2 pr-4">Operador</th>
+                  <th className="py-2 pr-4">Empresa</th>
+                  <th className="py-2 pr-4">Score</th>
+                  <th className="py-2 pr-4">Percentil</th>
+                  <th className="py-2 pr-4">Nivel</th>
+                  <th className="py-2">Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentResponses.items.map((item) => (
+                  <tr
+                    key={item.evaluationId}
+                    className="border-b border-slate-800/60 text-slate-300"
+                  >
+                    <td className="py-2.5 pr-4">
+                      <p className="font-medium text-slate-200">{item.fullName}</p>
+                      <p className="text-xs text-slate-500">{item.email}</p>
+                    </td>
+                    <td className="py-2.5 pr-4">{item.companyName}</td>
+                    <td className="py-2.5 pr-4 font-mono">{item.score.toFixed(1)}</td>
+                    <td className="py-2.5 pr-4 font-mono">{item.percentile.toFixed(1)}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-xs font-medium">
+                        {item.maturityLevel}
+                      </span>
+                    </td>
+                    <td className="py-2.5 text-xs text-slate-500">
+                      {new Date(item.completedAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">
+            Aún no hay evaluaciones completadas.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

@@ -2,14 +2,17 @@ package com.ghostload.api.administration.configuration;
 
 import com.ghostload.api.administration.application.port.in.AuthenticateAdminUseCase;
 import com.ghostload.api.administration.application.port.in.GetDashboardSummaryQuery;
+import com.ghostload.api.administration.application.port.in.GetRecentResponsesQuery;
 import com.ghostload.api.administration.application.port.in.ListOperatorsQuery;
 import com.ghostload.api.administration.application.port.out.GenerateAdminTokenPort;
 import com.ghostload.api.administration.application.port.out.LoadAdminByEmailPort;
+import com.ghostload.api.administration.application.port.out.LoadCompletedEvaluationsPort;
 import com.ghostload.api.administration.application.port.out.LoadDashboardMetricsPort;
 import com.ghostload.api.administration.application.port.out.LoadOperatorListPort;
 import com.ghostload.api.administration.application.port.out.VerifyPasswordPort;
 import com.ghostload.api.administration.application.service.AuthenticateAdminService;
 import com.ghostload.api.administration.application.service.GetDashboardSummaryService;
+import com.ghostload.api.administration.application.service.GetRecentResponsesService;
 import com.ghostload.api.administration.application.service.ListOperatorsService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -47,5 +50,11 @@ public class AdministrationBeanConfiguration {
     ListOperatorsQuery listOperatorsQuery(
             LoadOperatorListPort loadOperatorListPort) {
         return new ListOperatorsService(loadOperatorListPort);
+    }
+
+    @Bean
+    GetRecentResponsesQuery getRecentResponsesQuery(
+            LoadCompletedEvaluationsPort loadCompletedEvaluationsPort) {
+        return new GetRecentResponsesService(loadCompletedEvaluationsPort);
     }
 }

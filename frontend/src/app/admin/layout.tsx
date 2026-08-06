@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { LayoutDashboard, LogOut, Users, Upload, Megaphone, TrendingUp } from 'lucide-react';
 import { useAdminAuthStore } from '@/store/adminAuthStore';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -12,21 +12,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const accessToken = useAdminAuthStore((state) => state.accessToken);
   const admin = useAdminAuthStore((state) => state.admin);
+  const hasHydrated = useAdminAuthStore((state) => state.hasHydrated);
   const clearSession = useAdminAuthStore((state) => state.clearSession);
 
   useEffect(() => {
-    if (!accessToken) {
+    void useAdminAuthStore.persist.rehydrate();
+  }, []);
+
+  const isLoginPage = pathname === '/admin/login';
+
+  useEffect(() => {
+    if (hasHydrated && !accessToken && !isLoginPage) {
       router.replace('/admin/login');
     }
-  }, [accessToken, router]);
+  }, [hasHydrated, accessToken, router, isLoginPage]);
+
+  if (!hasHydrated) {
+    return null;
+  }
 
   if (!accessToken) {
-    return null;
+    return isLoginPage ? children : null;
   }
 
   const navItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/admin/operators', label: 'Operadores', icon: Users },
+    { href: '/admin/outreach/import', label: 'Importar contactos', icon: Upload },
+    { href: '/admin/outreach/campaigns', label: 'Campañas', icon: Megaphone },
+    { href: '/admin/crm/pipeline', label: 'Pipeline comercial', icon: TrendingUp },
   ];
 
   function handleLogout() {

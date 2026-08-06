@@ -3,310 +3,277 @@
 ## Project Ghost Load
 
 **Motor:** PostgreSQL  
-**Hosting:** Amazon RDS (decisión final pendiente vs Supabase)  
 **ORM:** Spring Data JPA / Hibernate  
+**Migraciones:** Flyway  
 **Arquitectura:** DDD — cada Bounded Context gestiona sus propias tablas
 
 ---
 
-## Diagrama de Entidades
+## Diagrama de Entidades (MVP)
 
 ```
-users
-  │
-  ├──< companies (admin_id → users.id)
-  │       │
-  │       ├──< benchmark_results (company_id)
-  │       │         │
-  │       │         └──< benchmark_responses (benchmark_id)
-  │       │
-  │       ├──< generated_pdfs (company_id)
-  │       │
-  │       └──< outreach_campaigns (company_id)
-  │                 │
-  │                 └──< outreach_notes (campaign_id)
-  │
-  └──< outreach_contacts (company_id)
+assessment
+  ├── operators
+  ├── evaluations
+  ├── evaluation_tokens
+  ├── calculator_results
+  ├── benchmark_questions
+  ├── benchmark_results
+  ├── benchmark_answers
+  └── benchmark_module_scores
+
+administration
+  └── admin_users
+
+outreach
+  ├── contact_imports
+  ├── contacts
+  ├── campaigns
+  ├── campaign_contacts
+  ├── invitations
+  ├── email_outbox
+  └── email_outbox_status
 ```
 
 ---
 
-## Tablas
-
----
-
-### users
+## assessment — operators
 
 | Columna      | Tipo           | Restricciones              | Descripción                          |
 |--------------|----------------|----------------------------|--------------------------------------|
 | id           | UUID           | PK, NOT NULL               | Identificador único                  |
-| email        | VARCHAR(255)   | UNIQUE, NOT NULL           | Email del usuario                    |
-| password     | VARCHAR(255)   | NOT NULL                   | Hash bcrypt                          |
-| name         | VARCHAR(255)   | NOT NULL                   | Nombre completo                      |
-| role         | VARCHAR(50)    | NOT NULL                   | ROLE_ADMIN / ROLE_OPERATOR           |
-| company_id   | UUID           | FK → companies.id, NULLABLE| Solo para ROLE_OPERATOR              |
-| status       | VARCHAR(50)    | NOT NULL, DEFAULT 'ACTIVE' | ACTIVE / SUSPENDED                   |
+| email        | VARCHAR(255)   | UNIQUE, NOT NULL           | Email del operador                   |
+| company_name | VARCHAR(255)   | NOT NULL                   | Nombre de la empresa                 |
+| position     | VARCHAR(255)   | NULLABLE                   | Cargo del operador                   |
 | created_at   | TIMESTAMP      | NOT NULL                   | Fecha de creación                    |
 | updated_at   | TIMESTAMP      | NOT NULL                   | Última actualización                 |
 
-```sql
-CREATE TABLE users (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email       VARCHAR(255) NOT NULL UNIQUE,
-    password    VARCHAR(255) NOT NULL,
-    name        VARCHAR(255) NOT NULL,
-    role        VARCHAR(50)  NOT NULL CHECK (role IN ('ROLE_ADMIN', 'ROLE_OPERATOR')),
-    company_id  UUID REFERENCES companies(id) ON DELETE SET NULL,
-    status      VARCHAR(50)  NOT NULL DEFAULT 'ACTIVE',
-    created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMP    NOT NULL DEFAULT NOW()
-);
-```
+---
+
+## assessment — evaluations
+
+| Columna      | Tipo           | Restricciones              | Descripción                          |
+|--------------|----------------|----------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL               | Identificador único                  |
+| operator_id  | UUID           | FK → operators.id          | Operador asociado                    |
+| state        | VARCHAR(50)    | NOT NULL                   | STARTED / CALCULATOR_COMPLETED / BENCHMARK_COMPLETED / REPORT_GENERATING / REPORT_COMPLETED / REPORT_FAILED |
+| created_at   | TIMESTAMP      | NOT NULL                   | Fecha de creación                    |
+| updated_at   | TIMESTAMP      | NOT NULL                   | Última actualización                 |
 
 ---
 
-### companies
+## assessment — evaluation_tokens
 
-| Columna       | Tipo         | Restricciones              | Descripción                          |
-|---------------|--------------|----------------------------|--------------------------------------|
-| id            | UUID         | PK, NOT NULL               | Identificador único                  |
-| name          | VARCHAR(255) | NOT NULL                   | Nombre de la empresa                 |
-| industry      | VARCHAR(100) | NULLABLE                   | Sector (Colocation, Hyperscale, etc.)|
-| country       | VARCHAR(100) | NULLABLE                   | País                                 |
-| admin_id      | UUID         | FK → users.id, NOT NULL    | Admin responsable                    |
-| founder_name  | VARCHAR(255) | NULLABLE                   | Nombre del founder/decisor           |
-| founder_email | VARCHAR(255) | NULLABLE                   | Email del founder                    |
-| status        | VARCHAR(50)  | NOT NULL                   | Estado del pipeline                  |
-| notes         | TEXT         | NULLABLE                   | Notas libres del Admin               |
-| created_at    | TIMESTAMP    | NOT NULL                   | Fecha de creación                    |
-| updated_at    | TIMESTAMP    | NOT NULL                   | Última actualización                 |
-
-```sql
-CREATE TABLE companies (
-    id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name           VARCHAR(255) NOT NULL,
-    industry       VARCHAR(100),
-    country        VARCHAR(100),
-    admin_id       UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    founder_name   VARCHAR(255),
-    founder_email  VARCHAR(255),
-    status         VARCHAR(50) NOT NULL DEFAULT 'REGISTERED'
-                   CHECK (status IN (
-                     'REGISTERED','INVITED','IN_PROGRESS','COMPLETED',
-                     'PDF_GENERATED','OUTREACH_PENDING','OUTREACH_SENT',
-                     'MEETING_SCHEDULED','CONVERTED','LOST'
-                   )),
-    notes          TEXT,
-    created_at     TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at     TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+| Columna      | Tipo           | Restricciones              | Descripción                          |
+|--------------|----------------|----------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL               | Identificador único                  |
+| evaluation_id| UUID           | FK → evaluations.id        | Evaluación asociada                  |
+| token        | VARCHAR(255)   | NOT NULL                   | Token único de acceso                |
+| expires_at   | TIMESTAMP      | NULLABLE                   | Fecha de expiración                  |
+| created_at   | TIMESTAMP      | NOT NULL                   | Fecha de creación                    |
 
 ---
 
-### benchmark_results
+## assessment — calculator_results
 
-| Columna              | Tipo         | Restricciones           | Descripción                         |
-|----------------------|--------------|-------------------------|-------------------------------------|
-| id                   | UUID         | PK, NOT NULL            | Identificador único                 |
-| company_id           | UUID         | FK → companies.id       | Empresa asociada                    |
-| operator_id          | UUID         | FK → users.id           | Operador que completó               |
-| status               | VARCHAR(50)  | NOT NULL                | IN_PROGRESS / COMPLETED             |
-| completion_pct       | INTEGER      | DEFAULT 0               | Porcentaje completado (0-100)       |
-| score                | DECIMAL(5,2) | NULLABLE                | Score /100 calculado                |
-| percentile           | INTEGER      | NULLABLE                | Percentil en el ranking global      |
-| maturity_level       | VARCHAR(50)  | NULLABLE                | ORCHESTRATED / COORDINATED / REACTIVE / FRAGMENTED |
-| total_capacity_kw    | DECIMAL(10,2)| NULLABLE                | KPI: capacidad total instalada      |
-| used_capacity_kw     | DECIMAL(10,2)| NULLABLE                | KPI: capacidad utilizada            |
-| wasted_capacity_kw   | DECIMAL(10,2)| NULLABLE                | KPI: capacidad desperdiciada        |
-| waste_index          | DECIMAL(5,2) | NULLABLE                | % de capacidad desperdiciada        |
-| pue_ratio            | DECIMAL(5,2) | NULLABLE                | Power Usage Effectiveness           |
-| industry_benchmark   | DECIMAL(5,2) | NULLABLE                | Benchmark promedio de la industria  |
-| ai_insights          | TEXT         | NULLABLE                | Insights generados por Google AI Studio |
-| completed_at         | TIMESTAMP    | NULLABLE                | Fecha de finalización               |
-| created_at           | TIMESTAMP    | NOT NULL                | Fecha de creación                   |
-| updated_at           | TIMESTAMP    | NOT NULL                | Última actualización                |
-
-```sql
-CREATE TABLE benchmark_results (
-    id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id          UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    operator_id         UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    status              VARCHAR(50) NOT NULL DEFAULT 'IN_PROGRESS'
-                        CHECK (status IN ('IN_PROGRESS', 'COMPLETED')),
-    completion_pct      INTEGER NOT NULL DEFAULT 0,
-    score               DECIMAL(5,2),
-    percentile          INTEGER,
-    maturity_level      VARCHAR(50)
-                        CHECK (maturity_level IN ('ORCHESTRATED','COORDINATED','REACTIVE','FRAGMENTED')),
-    total_capacity_kw   DECIMAL(10,2),
-    used_capacity_kw    DECIMAL(10,2),
-    wasted_capacity_kw  DECIMAL(10,2),
-    waste_index         DECIMAL(5,2),
-    pue_ratio           DECIMAL(5,2),
-    industry_benchmark  DECIMAL(5,2),
-    ai_insights         TEXT,
-    completed_at        TIMESTAMP,
-    created_at          TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+| Columna                | Tipo           | Restricciones           | Descripción                         |
+|------------------------|----------------|-------------------------|-------------------------------------|
+| id                     | UUID           | PK, NOT NULL            | Identificador único                 |
+| evaluation_id          | UUID           | FK → evaluations.id     | Evaluación asociada                 |
+| total_capacity_mw      | DECIMAL(10,2)  | NOT NULL                | Capacidad total en MW               |
+| productive_capacity_mw | DECIMAL(10,2)  | NOT NULL                | Capacidad productiva en MW          |
+| non_productive_capacity_mw | DECIMAL(10,2) | NOT NULL              | Capacidad no productiva en MW       |
+| utilization_pct        | DECIMAL(5,2)   | NOT NULL                | Porcentaje de utilización           |
+| non_productive_pct     | DECIMAL(5,2)   | NOT NULL                | Porcentaje no productivo            |
+| monthly_cost_per_kw    | DECIMAL(10,2)  | NOT NULL                | Costo mensual por kW                |
+| currency               | VARCHAR(10)    | NOT NULL                | Moneda (USD, EUR, etc.)            |
+| estimated_annual_cost  | DECIMAL(15,2)  | NOT NULL                | Costo anual estimado                |
+| created_at             | TIMESTAMP      | NOT NULL                | Fecha de creación                   |
 
 ---
 
-### benchmark_responses
+## assessment — benchmark_questions
+
+| Columna       | Tipo           | Restricciones           | Descripción                         |
+|---------------|----------------|-------------------------|-------------------------------------|
+| id            | UUID           | PK, NOT NULL            | Identificador único                 |
+| question_id   | VARCHAR(100)   | NOT NULL                | ID legible de la pregunta           |
+| module        | VARCHAR(100)   | NOT NULL                | Módulo: CAPACITY_VISIBILITY, OPERATIONAL_COORDINATION, AUTOMATION, GOVERNANCE, CONTINUOUS_IMPROVEMENT |
+| text          | TEXT           | NOT NULL                | Texto de la pregunta                |
+| version       | INTEGER        | NOT NULL, DEFAULT 1     | Versión del cuestionario            |
+| created_at    | TIMESTAMP      | NOT NULL                | Fecha de creación                   |
+
+---
+
+## assessment — benchmark_results
+
+| Columna              | Tipo           | Restricciones           | Descripción                         |
+|----------------------|----------------|-------------------------|-------------------------------------|
+| id                   | UUID           | PK, NOT NULL            | Identificador único                 |
+| evaluation_id        | UUID           | FK → evaluations.id     | Evaluación asociada                 |
+| status               | VARCHAR(50)    | NOT NULL                | COMPLETED                           |
+| score                | DECIMAL(5,2)   | NULLABLE                | Score /100 calculado                |
+| percentile           | INTEGER        | NULLABLE                | Percentil (MVP: determinístico)     |
+| maturity_level       | VARCHAR(50)    | NULLABLE                | INITIAL / DEVELOPING / MANAGED / ADVANCED / OPTIMIZED |
+| completed_at         | TIMESTAMP      | NULLABLE                | Fecha de finalización               |
+| created_at           | TIMESTAMP      | NOT NULL                | Fecha de creación                   |
+| updated_at           | TIMESTAMP      | NOT NULL                | Última actualización                |
+
+---
+
+## assessment — benchmark_answers
 
 | Columna      | Tipo         | Restricciones             | Descripción                    |
 |--------------|--------------|---------------------------|--------------------------------|
 | id           | UUID         | PK, NOT NULL              | Identificador único            |
-| benchmark_id | UUID         | FK → benchmark_results.id | Benchmark asociado             |
+| result_id    | UUID         | FK → benchmark_results.id | Resultado asociado             |
 | question_id  | VARCHAR(100) | NOT NULL                  | ID de la pregunta              |
-| value        | TEXT         | NULLABLE                  | Respuesta del operador         |
+| value        | INTEGER      | NOT NULL                  | Valor entre 1 y 5              |
 | answered_at  | TIMESTAMP    | NOT NULL                  | Momento de la respuesta        |
 
-```sql
-CREATE TABLE benchmark_responses (
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    benchmark_id  UUID NOT NULL REFERENCES benchmark_results(id) ON DELETE CASCADE,
-    question_id   VARCHAR(100) NOT NULL,
-    value         TEXT,
-    answered_at   TIMESTAMP NOT NULL DEFAULT NOW(),
-    UNIQUE (benchmark_id, question_id)
-);
-```
+---
+
+## assessment — benchmark_module_scores
+
+| Columna       | Tipo         | Restricciones             | Descripción                    |
+|---------------|--------------|---------------------------|--------------------------------|
+| id            | UUID         | PK, NOT NULL              | Identificador único            |
+| result_id     | UUID         | FK → benchmark_results.id | Resultado asociado             |
+| module        | VARCHAR(100) | NOT NULL                  | Nombre del módulo              |
+| score         | DECIMAL(5,2) | NOT NULL                  | Score del módulo /100          |
+| created_at    | TIMESTAMP    | NOT NULL                  | Fecha de creación              |
 
 ---
 
-### generated_pdfs
+## administration — admin_users
 
-| Columna       | Tipo         | Restricciones           | Descripción                       |
-|---------------|--------------|-------------------------|-----------------------------------|
-| id            | UUID         | PK, NOT NULL            | Identificador único               |
-| company_id    | UUID         | FK → companies.id       | Empresa asociada                  |
-| benchmark_id  | UUID         | FK → benchmark_results.id | Benchmark origen                |
-| status        | VARCHAR(50)  | NOT NULL                | PROCESSING / GENERATED / FAILED   |
-| s3_key        | VARCHAR(500) | NULLABLE                | Ruta del archivo en S3            |
-| download_url  | TEXT         | NULLABLE                | URL firmada (temporal)            |
-| generated_at  | TIMESTAMP    | NULLABLE                | Fecha de generación               |
-| created_at    | TIMESTAMP    | NOT NULL                | Fecha de creación                 |
-
-```sql
-CREATE TABLE generated_pdfs (
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id    UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    benchmark_id  UUID NOT NULL REFERENCES benchmark_results(id) ON DELETE RESTRICT,
-    status        VARCHAR(50) NOT NULL DEFAULT 'PROCESSING'
-                  CHECK (status IN ('PROCESSING', 'GENERATED', 'FAILED')),
-    s3_key        VARCHAR(500),
-    download_url  TEXT,
-    generated_at  TIMESTAMP,
-    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+| Columna      | Tipo           | Restricciones              | Descripción                          |
+|--------------|----------------|----------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL               | Identificador único                  |
+| email        | VARCHAR(255)   | UNIQUE, NOT NULL           | Email del admin                      |
+| password     | VARCHAR(255)   | NOT NULL                   | Hash bcrypt                          |
+| name         | VARCHAR(255)   | NOT NULL                   | Nombre completo                      |
+| role         | VARCHAR(50)    | NOT NULL, DEFAULT 'ADMIN'  | ADMIN                                |
+| created_at   | TIMESTAMP      | NOT NULL                   | Fecha de creación                    |
+| updated_at   | TIMESTAMP      | NOT NULL                   | Última actualización                 |
 
 ---
 
-### outreach_campaigns
+## outreach — contact_imports
 
-| Columna       | Tipo         | Restricciones           | Descripción                          |
-|---------------|--------------|-------------------------|--------------------------------------|
-| id            | UUID         | PK, NOT NULL            | Identificador único                  |
-| company_id    | UUID         | FK → companies.id       | Empresa asociada                     |
-| admin_id      | UUID         | FK → users.id           | Admin responsable del outreach       |
-| status        | VARCHAR(50)  | NOT NULL                | Estado del outreach                  |
-| sent_at       | TIMESTAMP    | NULLABLE                | Fecha de envío del primer contacto   |
-| meeting_at    | TIMESTAMP    | NULLABLE                | Fecha de reunión agendada            |
-| converted_at  | TIMESTAMP    | NULLABLE                | Fecha de conversión                  |
-| created_at    | TIMESTAMP    | NOT NULL                | Fecha de creación                    |
-| updated_at    | TIMESTAMP    | NOT NULL                | Última actualización                 |
-
-```sql
-CREATE TABLE outreach_campaigns (
-    id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id    UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    admin_id      UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    status        VARCHAR(50) NOT NULL DEFAULT 'OUTREACH_PENDING'
-                  CHECK (status IN (
-                    'OUTREACH_PENDING','OUTREACH_SENT',
-                    'MEETING_SCHEDULED','CONVERTED','LOST'
-                  )),
-    sent_at       TIMESTAMP,
-    meeting_at    TIMESTAMP,
-    converted_at  TIMESTAMP,
-    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+| Columna      | Tipo           | Restricciones           | Descripción                          |
+|--------------|----------------|-------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL            | Identificador único                  |
+| filename     | VARCHAR(255)   | NOT NULL                | Nombre del archivo                   |
+| total_rows   | INTEGER        | NOT NULL                | Total de filas                       |
+| imported     | INTEGER        | NOT NULL                | Filas importadas                     |
+| failed       | INTEGER        | NOT NULL                | Filas fallidas                       |
+| created_by   | UUID           | FK → admin_users.id     | Admin que importó                    |
+| created_at   | TIMESTAMP      | NOT NULL                | Fecha de importación                 |
 
 ---
 
-### outreach_notes
+## outreach — contacts
 
-| Columna      | Tipo         | Restricciones              | Descripción                    |
-|--------------|--------------|----------------------------|--------------------------------|
-| id           | UUID         | PK, NOT NULL               | Identificador único            |
-| campaign_id  | UUID         | FK → outreach_campaigns.id | Campaña asociada               |
-| created_by   | UUID         | FK → users.id              | Admin que escribió la nota     |
-| note         | TEXT         | NOT NULL                   | Contenido de la nota           |
-| created_at   | TIMESTAMP    | NOT NULL                   | Fecha de creación              |
-
-```sql
-CREATE TABLE outreach_notes (
-    id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    campaign_id  UUID NOT NULL REFERENCES outreach_campaigns(id) ON DELETE CASCADE,
-    created_by   UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
-    note         TEXT NOT NULL,
-    created_at   TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+| Columna      | Tipo           | Restricciones           | Descripción                          |
+|--------------|----------------|-------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL            | Identificador único                  |
+| import_id    | UUID           | FK → contact_imports.id | Importación asociada                 |
+| first_name   | VARCHAR(255)   | NOT NULL                | Nombre                               |
+| last_name    | VARCHAR(255)   | NOT NULL                | Apellido                             |
+| email        | VARCHAR(255)   | UNIQUE, NOT NULL        | Email                                |
+| company      | VARCHAR(255)   | NULLABLE                | Empresa                              |
+| position     | VARCHAR(255)   | NULLABLE                | Cargo                                |
+| created_at   | TIMESTAMP      | NOT NULL                | Fecha de creación                    |
 
 ---
 
-### outreach_status_history
+## outreach — campaigns
 
-| Columna      | Tipo         | Restricciones              | Descripción                       |
-|--------------|--------------|----------------------------|-----------------------------------|
-| id           | UUID         | PK, NOT NULL               | Identificador único               |
-| company_id   | UUID         | FK → companies.id          | Empresa asociada                  |
-| status       | VARCHAR(50)  | NOT NULL                   | Nuevo estado                      |
-| changed_by   | VARCHAR(255) | NOT NULL                   | Email del usuario o "system"      |
-| changed_at   | TIMESTAMP    | NOT NULL                   | Fecha del cambio                  |
+| Columna      | Tipo           | Restricciones           | Descripción                          |
+|--------------|----------------|-------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL            | Identificador único                  |
+| name         | VARCHAR(255)   | NOT NULL                | Nombre de la campaña                 |
+| created_by   | UUID           | FK → admin_users.id     | Admin que creó                       |
+| sent_at      | TIMESTAMP      | NULLABLE                | Fecha de envío                       |
+| created_at   | TIMESTAMP      | NOT NULL                | Fecha de creación                    |
+| updated_at   | TIMESTAMP      | NOT NULL                | Última actualización                 |
 
-```sql
-CREATE TABLE outreach_status_history (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    company_id  UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
-    status      VARCHAR(50) NOT NULL,
-    changed_by  VARCHAR(255) NOT NULL,
-    changed_at  TIMESTAMP NOT NULL DEFAULT NOW()
-);
-```
+---
+
+## outreach — campaign_contacts
+
+| Columna      | Tipo           | Restricciones           | Descripción                          |
+|--------------|----------------|-------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL            | Identificador único                  |
+| campaign_id  | UUID           | FK → campaigns.id       | Campaña asociada                     |
+| contact_id   | UUID           | FK → contacts.id        | Contacto asociado                    |
+| UNIQUE       | (campaign_id, contact_id) |                  | Sin duplicados                       |
+
+---
+
+## outreach — invitations
+
+| Columna         | Tipo           | Restricciones           | Descripción                          |
+|-----------------|----------------|-------------------------|--------------------------------------|
+| id              | UUID           | PK, NOT NULL            | Identificador único                  |
+| campaign_id     | UUID           | FK → campaigns.id       | Campaña asociada                     |
+| contact_id      | UUID           | FK → contacts.id        | Contacto asociado                    |
+| token           | VARCHAR(255)   | UNIQUE, NOT NULL        | Token único de acceso                |
+| status          | VARCHAR(50)    | NOT NULL                | UPLOADED / SENT / VISITED / STARTED / COMPLETED / FAILED |
+| sent_at         | TIMESTAMP      | NULLABLE                | Fecha de envío                       |
+| visited_at      | TIMESTAMP      | NULLABLE                | Fecha de primer visita               |
+| started_at      | TIMESTAMP      | NULLABLE                | Fecha de inicio de evaluación        |
+| completed_at    | TIMESTAMP      | NULLABLE                | Fecha de finalización                |
+| error_message   | TEXT           | NULLABLE                | Mensaje de error si falló            |
+| created_at      | TIMESTAMP      | NOT NULL                | Fecha de creación                    |
+| updated_at      | TIMESTAMP      | NOT NULL                | Última actualización                 |
+
+---
+
+## outreach — email_outbox
+
+| Columna      | Tipo           | Restricciones           | Descripción                          |
+|--------------|----------------|-------------------------|--------------------------------------|
+| id           | UUID           | PK, NOT NULL            | Identificador único                  |
+| invitation_id| UUID           | FK → invitations.id     | Invitación asociada                  |
+| to_email     | VARCHAR(255)   | NOT NULL                | Destinatario                         |
+| subject      | VARCHAR(255)   | NOT NULL                | Asunto                               |
+| body         | TEXT           | NOT NULL                | Cuerpo del email                     |
+| status       | VARCHAR(50)    | NOT NULL                | PENDING / SENT / FAILED              |
+| sent_at      | TIMESTAMP      | NULLABLE                | Fecha de envío                       |
+| error_message| TEXT           | NULLABLE                | Mensaje de error                     |
+| retry_count  | INTEGER        | DEFAULT 0               | Contador de reintentos               |
+| created_at   | TIMESTAMP      | NOT NULL                | Fecha de creación                    |
 
 ---
 
 ## Índices Recomendados
 
 ```sql
--- Búsqueda de empresas por admin y estado
-CREATE INDEX idx_companies_admin_id ON companies(admin_id);
-CREATE INDEX idx_companies_status ON companies(status);
+-- Evaluaciones por operador
+CREATE INDEX idx_evaluations_operator_id ON evaluations(operator_id);
 
--- Benchmark por empresa
-CREATE INDEX idx_benchmark_results_company_id ON benchmark_results(company_id);
+-- Evaluaciones por estado
+CREATE INDEX idx_evaluations_state ON evaluations(state);
 
--- PDFs por empresa
-CREATE INDEX idx_generated_pdfs_company_id ON generated_pdfs(company_id);
+-- Resultados por evaluación
+CREATE INDEX idx_benchmark_results_evaluation_id ON benchmark_results(evaluation_id);
 
--- Outreach por empresa y estado
-CREATE INDEX idx_outreach_campaigns_company_id ON outreach_campaigns(company_id);
-CREATE INDEX idx_outreach_campaigns_status ON outreach_campaigns(status);
+-- Contactos por email (deduplicación)
+CREATE INDEX idx_contacts_email ON contacts(email);
 
--- Historial de estados
-CREATE INDEX idx_status_history_company_id ON outreach_status_history(company_id);
+-- Invitaciones por token
+CREATE INDEX idx_invitations_token ON invitations(token);
 
--- Usuarios por rol
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_company_id ON users(company_id);
+-- Invitaciones por campaña
+CREATE INDEX idx_invitations_campaign_id ON invitations(campaign_id);
+
+-- Email outbox por estado
+CREATE INDEX idx_email_outbox_status ON email_outbox(status);
+
+-- Admin users por email
+CREATE INDEX idx_admin_users_email ON admin_users(email);
 ```
 
 ---
@@ -314,24 +281,49 @@ CREATE INDEX idx_users_company_id ON users(company_id);
 ## Seed Inicial
 
 ```sql
--- Seed inicial (primer Admin)
-INSERT INTO users (id, email, password, name, role, status)
+-- Seed del primer Admin (V1.2)
+INSERT INTO admin_users (id, email, password, name, role)
 VALUES (
     gen_random_uuid(),
-    'admin@ghostload.com',
+    'admin@ghostload.local',
     '$2a$12$...hash_bcrypt...',
     'Administrator',
-    'ROLE_ADMIN',
-    'ACTIVE'
+    'ADMIN'
 );
 ```
 
 ---
 
-## Decisión Pendiente
+## Migraciones Flyway (orden实际)
 
-| Item                  | Opción A              | Opción B            | Estado       |
-|-----------------------|-----------------------|---------------------|--------------|
-| Hosting PostgreSQL    | Amazon RDS PostgreSQL | Supabase PostgreSQL | Pendiente    |
+| Versión | Tabla(s) creada(s) |
+|---------|---------------------|
+| V1.1    | `admin_users` |
+| V1.2    | Seed admin |
+| V1.3    | `operators`, `evaluations` |
+| V1.4    | `evaluation_tokens`, `calculator_results` |
+| V1.5    | `contact_imports` |
+| V1.6    | `contacts` |
+| V1.7    | `campaigns` |
+| V1.8    | `campaign_contacts` |
+| V1.9    | `invitations` |
+| V1.10   | `email_outbox` |
+| V1.11   | (events log, opcional) |
+| V1.12   | `email_outbox_status` |
+| V1.13   | `benchmark_questions` |
+| V1.14   | Seed preguntas benchmark |
+| V1.15   | `benchmark_results` |
+| V1.16   | `benchmark_answers` |
+| V1.17   | `benchmark_module_scores` |
 
-Ambas opciones son compatibles con Spring Data JPA sin cambios en el dominio (adaptador de persistencia intercambiable por arquitectura hexagonal).
+---
+
+## Tablas futuras (post-MVP)
+
+| Tabla | Módulo | Descripción |
+|-------|--------|-------------|
+| `generated_reports` | reporting | PDFs generados |
+| `report_store` | reporting | Metadata de almacenamiento |
+| `outreach_pipeline` | outreach | Pipeline CRM comercial |
+| `outreach_notes` | outreach | Notas de seguimiento |
+| `dashboard_cache` | administration | Métricas cacheadas |

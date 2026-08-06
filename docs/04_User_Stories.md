@@ -8,8 +8,8 @@
 
 | Rol             | Descripción                                              |
 |-----------------|----------------------------------------------------------|
-| `ROLE_ADMIN`    | Administrador — acceso total al sistema y todos los datos|
-| `ROLE_OPERATOR` | Operador — acceso solo a su empresa y benchmark          |
+| `ROLE_ADMIN`    | Administrador — acceso total al sistema via JWT          |
+| `ROLE_OPERATOR` | Operador — acceso solo a su evaluación via token único   |
 
 ---
 
@@ -21,21 +21,20 @@
 **Para** acceder al panel de administración
 
 **Criterios de aceptación:**
-- El sistema valida credenciales contra el backend
-- Ante credenciales incorrectas muestra mensaje de error claro
+- El sistema valida credenciales contra `admin_users`
+- Ante credenciales incorrectas devuelve HTTP 401
 - Tras login exitoso redirige al Dashboard
-- El JWT se almacena y persiste la sesión
+- El JWT se almacena en el frontend
 
 ---
 
 ### US-02
 **Como** Admin  
-**Quiero** cerrar sesión desde cualquier pantalla  
+**Quiero** cerrar sesión  
 **Para** proteger el acceso al sistema
 
 **Criterios de aceptación:**
-- El botón de logout invalida el JWT
-- Redirige a la pantalla de login
+- El botón de logout redirige a la pantalla de login
 - No es posible navegar hacia atrás tras logout
 
 ---
@@ -45,303 +44,232 @@
 ### US-03
 **Como** Admin  
 **Quiero** ver un resumen general del sistema al ingresar  
-**Para** tener visibilidad del estado de todos los operadores y empresas
+**Para** tener visibilidad del estado de las evaluaciones
 
 **Criterios de aceptación:**
-- El dashboard muestra los KPIs principales:
-  - Operadores totales (con variación % vs período anterior)
-  - Benchmarks completados
-  - Score promedio /100
-  - Percentil promedio
-  - PDFs generados
-  - Llamadas agendadas
-- Los KPIs muestran comparación con el período anterior
-- El dashboard permite filtrar por rango de fechas
+- El dashboard muestra: operadores totales, benchmarks completados, score promedio
+- [future] Los KPIs muestran variación % vs período anterior
+- [future] El dashboard permite filtrar por rango de fechas
 
 ---
 
 ### US-04
 **Como** Admin  
-**Quiero** ver la distribución de scores de todos los operadores  
-**Para** entender cómo se distribuye la madurez del portfolio
+**Quiero** ver la distribución de scores de los operadores  
+**Para** entender la madurez del portfolio
 
 **Criterios de aceptación:**
-- Se muestra un histograma de distribución por rangos (0-10, 11-20, ... 91-100)
-- El eje Y muestra cantidad de operadores por rango
-- Se puede filtrar por segmento
+- [future] Se muestra un histograma de distribución por rangos
+- [future] Los rangos cubren de 0 a 100 sin solapamiento
 
 ---
 
 ### US-05
 **Como** Admin  
 **Quiero** ver la evolución del score promedio en el tiempo  
-**Para** identificar tendencias del portfolio
+**Para** identificar tendencias
 
 **Criterios de aceptación:**
-- Se muestra un gráfico de línea con puntos mensuales
-- El rango por defecto es los últimos 6 meses
-- Se puede cambiar el período desde un selector
+- [future] Se muestra un gráfico de línea con puntos mensuales
+- [future] El rango por defecto son los últimos 6 meses
 
 ---
 
 ### US-06
 **Como** Admin  
 **Quiero** ver el score promedio por segmento/región  
-**Para** comparar el desempeño entre mercados
+**Para** comparar desempeño entre mercados
 
 **Criterios de aceptación:**
-- Se muestra un gráfico de barras horizontales
-- Segmentos: Todos los operadores, Norteamérica, Latinoamérica, Europa, Asia Pacífico
-- Cada barra muestra el score promedio
+- [future] Se muestra un gráfico de barras por región
 
 ---
 
 ### US-07
 **Como** Admin  
 **Quiero** ver la distribución de niveles de madurez  
-**Para** entender en qué etapa están la mayoría de las empresas
+**Para** entender la etapa del portfolio
 
 **Criterios de aceptación:**
-- Se muestra un gráfico tipo donut con 4 niveles:
-  - 🟢 Orquestado (75-100)
-  - 🔵 Coordinado (50-74)
-  - 🟡 Reactivo (25-49)
-  - 🔴 Fragmentado (0-24)
-- Cada nivel muestra % y cantidad de operadores
-- El total en el centro es el total de benchmarks completados
+- [future] Se muestra un gráfico tipo donut con 5 niveles:
+  - 🟢 Optimized (90-100)
+  - 🔵 Advanced (75-89)
+  - 🟡 Managed (50-74)
+  - 🟠 Developing (25-49)
+  - 🔴 Initial (0-24)
 
 ---
 
 ### US-08
 **Como** Admin  
 **Quiero** ver el embudo de conversión completo  
-**Para** medir la efectividad del proceso de adquisición
+**Para** medir la efectividad del proceso
 
 **Criterios de aceptación:**
-- El embudo muestra cada etapa con cantidad y % de conversión:
-  - Visitantes únicos
-  - Calculadora iniciada
-  - Email capturado
-  - Benchmark completado
-  - PDF descargado
-  - Llamada agendada
-- Se visualiza como funnel con degradado
+- [future] El embudo muestra cada etapa con cantidad y % de conversión
 
 ---
 
 ### US-09
 **Como** Admin  
 **Quiero** ver las últimas respuestas del benchmark en una tabla  
-**Para** hacer seguimiento rápido de la actividad reciente
+**Para** hacer seguimiento rápido
 
 **Criterios de aceptación:**
-- La tabla muestra: Operator, Empresa, Región, Score, Percentil, Nivel de madurez, Completado (fecha/hora), PDF (ícono de descarga), Acciones
-- El nivel de madurez se muestra como badge con color
-- El botón "Ver detalle" abre el detalle del operador
-- Al pie hay link "Ver todas las respuestas"
+- [future] La tabla muestra: Operator, Empresa, Score, Percentil, Nivel de madurez, Fecha
+- [future] El nivel de madurez se muestra como badge con color
 
 ---
+
+## ADMIN — Evaluaciones
 
 ### US-10
 **Como** Admin  
-**Quiero** exportar un reporte del dashboard  
-**Para** compartirlo con el equipo o presentarlo en reuniones
+**Quiero** ver el listado de evaluaciones completadas  
+**Para** revisar los resultados de los operadores
 
 **Criterios de aceptación:**
-- El botón "Exportar reporte" genera un PDF o CSV del estado actual
-- El reporte incluye los KPIs principales y la tabla de respuestas
+- Lista paginada de evaluaciones con score, madurez, operador, fecha
+- [future] Filtros por fecha, score, nivel de madurez
 
 ---
 
-## ADMIN — Benchmark
+## ADMIN — Outreach (Campañas)
 
 ### US-11
 **Como** Admin  
-**Quiero** ver todas las respuestas del benchmark  
-**Para** analizar los datos de cada operador
+**Quiero** importar contactos desde un archivo CSV  
+**Para** crear campañas de invitación
 
 **Criterios de aceptación:**
-- Lista paginada de todas las respuestas con filtros por fecha, región, score, nivel de madurez
-- Cada fila tiene acceso al detalle completo
+- El sistema acepta CSV con columnas: first_name, last_name, email, company, position
+- Valida cada fila (campos requeridos, email, duplicados)
+- Las filas inválidas no bloquean las válidas
+- Devuelve resumen: importados, fallidos, errores
 
 ---
 
 ### US-12
 **Como** Admin  
-**Quiero** ver el análisis agregado del benchmark  
-**Para** identificar patrones en las respuestas
+**Quiero** crear campañas desde los contactos importados  
+**Para** organizar las invitaciones
 
 **Criterios de aceptación:**
-- Visualización de respuestas por pregunta
-- Distribución de respuestas más comunes
+- Puedo seleccionar contactos para una campaña
+- El sistema registra quién creó la campaña y cuándo
 
 ---
 
 ### US-13
 **Como** Admin  
-**Quiero** ver los percentiles del sistema  
-**Para** ubicar a cada operador en el contexto del portfolio
+**Quiero** enviar invitaciones a los contactos de una campaña  
+**Para** que accedan al benchmark
 
 **Criterios de aceptación:**
-- Tabla de distribución percentil
-- Posición de cada operador en el ranking
+- Cada invitación tiene un token único no predecible
+- El sistema encola los emails y los envía en background
+- Se registra el resultado de cada envío
 
 ---
-
-## ADMIN — Calculadora
 
 ### US-14
 **Como** Admin  
-**Quiero** ver los resultados de KPIs calculados de todos los operadores  
-**Para** identificar los casos con mayor potencial
+**Quiero** ver el estado de las invitaciones enviadas  
+**Para** saber quiénes han respondido
 
 **Criterios de aceptación:**
-- Tabla con KPIs por empresa: waste index, PUE, capacidad total, capacidad desperdiciada
-- Filtrable por rango de waste index y tamaño de infraestructura
-
----
-
-## ADMIN — Outreach
-
-### US-15
-**Como** Admin  
-**Quiero** gestionar campañas de outreach  
-**Para** organizar el contacto con los founders de las empresas
-
-**Criterios de aceptación:**
-- Lista de campañas con estado actual
-- Posibilidad de crear nueva campaña desde una empresa con PDF generado
-
----
-
-### US-16
-**Como** Admin  
-**Quiero** gestionar los contactos (founders)  
-**Para** tener un registro centralizado de los decisores de cada empresa
-
-**Criterios de aceptación:**
-- Lista de contactos con empresa, email, estado
-- Importación masiva vía CSV con columnas: name, email, company
-
----
-
-### US-17
-**Como** Admin  
-**Quiero** enviar invitaciones a operadores  
-**Para** que completen el benchmark
-
-**Criterios de aceptación:**
-- Envío individual o masivo vía CSV
-- El sistema envía email automático con link de acceso
-- Estado de la empresa cambia a INVITED
-
----
-
-### US-18
-**Como** Admin  
-**Quiero** hacer seguimiento del estado de cada empresa  
-**Para** saber en qué etapa del pipeline está cada una
-
-**Criterios de aceptación:**
-- Vista del pipeline con todos los estados
-- Posibilidad de cambiar estado manualmente
-- Registro de historial de cambios con fecha y usuario
-
----
-
-## ADMIN — Reportes
-
-### US-19
-**Como** Admin  
-**Quiero** ver todos los PDFs generados  
-**Para** acceder y descargar los reportes de cada empresa
-
-**Criterios de aceptación:**
-- Lista de PDFs con empresa, fecha de generación, estado
-- Botón de descarga por cada PDF
-- Posibilidad de regenerar un PDF
+- Estados: UPLOADED → SENT → VISITED → STARTED → COMPLETED
+- [future] Vista de pipeline con filtros
 
 ---
 
 ## ADMIN — Configuración
 
-### US-20
+### US-15
 **Como** Admin  
 **Quiero** gestionar los usuarios del sistema  
-**Para** crear, editar o suspender Admins y Operators
+**Para** crear o suspender Admins
 
 **Criterios de aceptación:**
-- Lista de usuarios con rol, estado, fecha de creación
-- Crear nuevo Admin o Operator
-- Suspender/activar usuario
+- [future] Lista de usuarios admin con estado
+- [future] Crear nuevo Admin
+- [future] Suspender/activar Admin
 
 ---
 
-## OPERATOR — Autenticación
+## OPERATOR — Evaluación
 
-### US-21
+### US-16
 **Como** Operator  
-**Quiero** acceder al sistema con el link que recibí por email  
-**Para** completar el benchmark de mi empresa
+**Quiero** registrarme con mi email y empresa  
+**Para** iniciar la evaluación de mi Data Center
 
 **Criterios de aceptación:**
-- El link de invitación lleva directamente al login
-- Tras autenticarse redirige al cuestionario de benchmark
-- Si ya completó el benchmark, redirige a sus resultados
+- Ingreso email y nombre de empresa
+- El sistema devuelve un token único para continuar
+- Se crea la evaluación en estado STARTED
 
 ---
 
-## OPERATOR — Benchmark
+### US-17
+**Como** Operator  
+**Quiero** completar la calculadora de capacidad  
+**Para** conocer mis KPIs de infraestructura
 
-### US-22
+**Criterios de aceptación:**
+- Ingreso capacidad total (MW), capacidad productiva (MW), costo mensual por kW
+- El sistema calcula: capacidad no productiva, % utilización, % no productivo, costo anual
+- La evaluación pasa a CALCULATOR_COMPLETED
+
+---
+
+### US-18
 **Como** Operator  
 **Quiero** completar el cuestionario de benchmark  
-**Para** obtener un diagnóstico de mi Data Center
+**Para** obtener un diagnóstico de madurez
 
 **Criterios de aceptación:**
-- El cuestionario se divide en secciones
-- El progreso se guarda automáticamente al avanzar
-- Puede retomar desde donde lo dejó si cierra la sesión
-- Al finalizar muestra un resumen de sus respuestas antes de confirmar
+- El cuestionario tiene 20 preguntas en 5 módulos temáticos
+- Cada respuesta es un valor entre 1 y 5
+- Al enviar, el sistema calcula score/100, score por módulo, percentil y nivel de madurez
+- La evaluación pasa a BENCHMARK_COMPLETED
+- [future] El progreso se guarda automáticamente
 
 ---
 
-### US-23
+### US-19
 **Como** Operator  
 **Quiero** ver mis resultados tras completar el benchmark  
 **Para** entender el estado de mi infraestructura
 
 **Criterios de aceptación:**
-- Muestra su score /100
-- Muestra su percentil en el ranking
-- Muestra su nivel de madurez con descripción (Orquestado / Coordinado / Reactivo / Fragmentado)
-- Muestra los KPIs calculados (waste index, PUE, capacidad)
+- Muestra score /100
+- Muestra percentil (con disclaimer si es dato de demostración)
+- Muestra nivel de madurez: OPTIMIZED / ADVANCED / MANAGED / DEVELOPING / INITIAL
+- Muestra KPIs calculados (capacidad no productiva, % utilización, costo anual)
 
 ---
 
 ## OPERATOR — PDF
 
-### US-24
+### US-20
 **Como** Operator  
-**Quiero** recibir el PDF institucional por email tras completar el benchmark  
-**Para** tener un reporte formal de mi infraestructura
+**Quiero** recibir el PDF institucional por email  
+**Para** tener un reporte formal
 
 **Criterios de aceptación:**
-- El email llega automáticamente tras completar el benchmark
-- El PDF incluye KPIs, score, nivel de madurez e insights de IA
-- El email tiene asunto y contenido profesional
+- [future] El email llega automáticamente tras completar el benchmark
+- [future] El PDF incluye KPIs, score y nivel de madurez
 
 ---
 
-### US-25
+### US-21
 **Como** Operator  
 **Quiero** descargar el PDF desde el sistema  
 **Para** tenerlo disponible sin depender del email
 
 **Criterios de aceptación:**
-- Botón de descarga disponible en la vista de resultados
-- El PDF se descarga directamente desde S3 con URL firmada
-- El link de descarga tiene validez temporal
+- [future] Botón de descarga disponible en la vista de resultados
 
 ---
 
@@ -349,7 +277,8 @@
 
 | Nivel        | Rango Score | Color | Descripción                                           |
 |--------------|-------------|-------|-------------------------------------------------------|
-| Orquestado   | 75 - 100    | Verde | Infraestructura optimizada y bien gestionada          |
-| Coordinado   | 50 - 74     | Azul  | Gestión adecuada con oportunidades de mejora          |
-| Reactivo     | 25 - 49     | Amarillo | Gestión básica, múltiples áreas de mejora          |
-| Fragmentado  | 0 - 24      | Rojo  | Infraestructura desorganizada, alto potencial de ahorro|
+| Optimized    | 90 - 100    | Verde | Infraestructura optimizada y bien gestionada          |
+| Advanced     | 75 - 89     | Azul  | Gestión avanzada con oportunidades de mejora          |
+| Managed      | 50 - 74     | Amarillo | Gestión adecuada, áreas de mejora identificadas    |
+| Developing   | 25 - 49     | Naranja | Gestión básica, múltiples áreas de mejora           |
+| Initial      | 0 - 24      | Rojo  | Infraestructura desorganizada, alto potencial de ahorro|

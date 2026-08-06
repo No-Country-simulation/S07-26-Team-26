@@ -1,59 +1,75 @@
 # Tasks — Outreach
 
 ## Status Legend
-- [ ] Pendiente
 - [x] Completado
 - [-] En progreso
+- [ ] Pendiente
+- [future] Fuera de MVP (visión futura)
 
 ---
 
 ## Backend
 
-- [ ] Crear entidad `Campaign` con JPA (REQ-4.1, REQ-4.5)
-- [ ] Crear entidad `OutreachNote` con JPA (REQ-3.1, REQ-3.2)
-- [ ] Crear tablas `outreach_campaigns`, `outreach_notes`, `outreach_status_history` (REQ-2.3, REQ-3)
-- [ ] Implementar `CampaignRepository` (JPA Adapter) (REQ-1, REQ-2, REQ-4)
-- [ ] Implementar `OutreachUseCase` — getPipeline, updateStatus, addNote, getHistory (REQ-1, REQ-2, REQ-3)
-- [ ] Implementar validación de transiciones de estado aprobadas (REQ-2.2)
-- [ ] Implementar registro de historial: estado anterior, nuevo, timestamp, Admin (REQ-2.3)
-- [ ] Implementar updateStatus idempotente — mismo valor devuelve respuesta definida (REQ-2.4)
-- [ ] Implementar autoría de nota desde JWT — no desde datos del cliente (REQ-3.3)
-- [ ] Implementar transición automática a OUTREACH_PENDING cuando PDF está listo (REQ-6.1)
-- [ ] Implementar idempotencia del PDF-ready signal — no duplicar entradas (REQ-6.2)
-- [ ] Implementar deduplicación de contactos en campaña por email normalizado (REQ-4.4)
-- [ ] Implementar endpoint GET /outreach/pipeline con filtros por status, región, score, madurez (REQ-1.2)
-- [ ] Implementar exportación del pipeline a CSV respetando filtros activos (REQ-1.6)
-- [ ] Implementar endpoint PATCH /outreach/{companyId}/status (REQ-2.1, REQ-2.3)
-- [ ] Implementar endpoint POST /outreach/{companyId}/notes (REQ-3.1, REQ-3.2)
-- [ ] Implementar endpoint GET /outreach/{companyId}/history en orden cronológico (REQ-3.4)
+### Entities & Database
+- [x] Crear entidad `Campaign` con JPA + tabla `campaigns` (V1.7)
+- [x] Crear entidad `Contact` con JPA + tabla `contacts` (V1.6, alter V1.12)
+- [x] Crear entidad `Invitation` con JPA + tabla `invitations` (V1.8)
+- [x] Crear entidad `ContactImport` con JPA + tabla `contact_imports` (V1.5)
+- [x] Crear tabla `contact_import_contacts` (V1.10) + seed (V1.11)
+- [x] Crear tabla `email_outbox` (V1.9)
+  - Nota: `email_outbox_status` NO es tabla separada; el estado es la columna `status` con CHECK (PENDING/PROCESSING/SENT/FAILED) dentro de `email_outbox`.
+  - Nota: no existe tabla `campaign_contacts`; la relación campaña↔invitación se modela vía `campaign_id` en `invitations`/`email_outbox`.
 
-### Tests Backend (REQ coverage)
-- [ ] Test: pipeline muestra empresa aunque no tenga resultados de benchmark (REQ-1.4)
-- [ ] Test: transición de estado inválida es rechazada (REQ-2.2)
-- [ ] Test: cada cambio de estado registra actor y timestamp (REQ-2.3)
-- [ ] Test: updateStatus con mismo valor es idempotente (REQ-2.4)
-- [ ] Test: nota se registra con autor del JWT — no manipulable por cliente (REQ-3.3)
-- [ ] Test: historial devuelve cambios en orden cronológico determinista (REQ-3.4)
-- [ ] Test: mismo contacto no puede duplicarse en la misma campaña (REQ-4.3)
-- [ ] Test: deduplicación usa email normalizado (REQ-4.4)
-- [ ] Test: PDF-ready signal idempotente — no crea duplicados (REQ-6.2)
-- [ ] Test: fallo de notificación no modifica estado del PDF (REQ-6.3)
-- [ ] Test: empresa aparece con OUTREACH_PENDING cuando PDF se genera (REQ-6.1)
-- [ ] Test: exportación CSV respeta filtros activos (REQ-1.6)
+### Contact Import
+- [x] Implementar `ContactImportController` — POST /api/v1/admin/contact-imports
+- [x] Implementar `ImportContactsService` — validación y persistencia
+- [x] Implementar `ApacheCommonsCsvContactFileAdapter` — parseo CSV
+- [x] Implementar deduplicación por email
+- [x] Implementar validación de filas: campos requeridos, email inválido
+
+### Campaigns
+- [x] Implementar `CampaignController` — POST /api/v1/admin/campaigns
+- [x] Implementar `CreateCampaignService` — crear campaña desde contactos
+- [x] Implementar envío de campaña — POST /api/v1/admin/campaigns/{id}/send
+- [x] Implementar `SendCampaignService` — crear invitations + encolar emails
+- [x] Implementar `EmailOutboxWorker` — scheduler que envía emails pendientes
+- [x] Implementar `ProcessPendingEmailsService` — envía vía SMTP y actualiza estado
+- [x] Implementar `HostingerSmtpEmailAdapter` — integración SMTP
+
+### Invitation Tracking
+- [x] Implementar state machine: UPLOADED → SENT → VISITED → STARTED → COMPLETED | FAILED
+- [x] Implementar generación de token único por invitación
+- [x] Implementar registro de timestamp de cada cambio de estado
+
+### Por implementar
+- [x] Pipeline CRM comercial con estados OUTREACH_PENDING → OUTREACH_SENT → MEETING_SCHEDULED → CONVERTED/LOST
+- [x] Notas de seguimiento por empresa
+- [x] Historial de cambios de estado por empresa
+- [x] Vista de pipeline con filtros (status, región, score)
+- [x] Exportación del pipeline a CSV
+- [future] Migrar de Hostinger SMTP a AWS SES
+- [future] Envío masivo asíncrono con Lambda/SQS (actualmente scheduler + worker)
+
+### Tests Backend
+- [x] Test: importación CSV con datos válidos (`ImportContactsServiceTest`)
+- [x] Test: CSV con filas inválidas no bloquea filas válidas (`ImportContactsServiceTest`)
+- [x] Test: deduplicación por email normalizado (`ImportContactsServiceTest`)
+- [x] Test: validación de campos requeridos en CSV (`ImportContactsServiceTest`)
+- [x] Test: creación de campaña desde contactos (`CreateCampaignServiceTest`)
+- [x] Test: envío de campaña genera invitations y encola emails (`SendCampaignServiceTest`)
+- [x] Test: worker envía emails pendientes y actualiza estado (`ProcessPendingEmailsServiceTest`)
+- [x] Test: adaptador SMTP clasifica errores (`HostingerSmtpEmailAdapterTest`, `EmailDeliveryExceptionTest`)
+- [x] Test: transiciones de estado inválidas son rechazadas (`CampaignStateTransitionTest`)
+- [x] Test: email retry no duplica invitations (`SendCampaignServiceTest.shouldNotDuplicateEmailsOnRetryAfterQueueing`)
+- [future] Test: migración a SES
 
 ## Frontend
-
-- [ ] Crear sección Campañas con listado del pipeline y filtros (REQ-1.2)
-- [ ] Crear sección Contactos con datos de founders (REQ-4.2)
-- [ ] Crear sección Invitaciones con estado por empresa (REQ-5.3)
-- [ ] Crear sección Seguimiento con tabla filtrable (REQ-1.1, REQ-1.2)
-- [ ] Implementar cambio de estado de outreach desde la UI (REQ-2.1)
-- [ ] Implementar formulario de agregar nota por empresa (REQ-3.1)
-- [ ] Crear vista de historial de cambios de estado por empresa (REQ-3.4)
-- [ ] Mostrar score, percentil y nivel de madurez en la tabla del pipeline (REQ-1.3)
-- [ ] Implementar exportación del pipeline a CSV (REQ-1.6)
+- [x] Crear sección de importación CSV con drag & drop y preview
+- [x] Crear sección de campañas con listado y creación
+- [x] Crear vista de tracking de invitaciones por campaña
+- [x] Crear pipeline CRM con cambio de estado, notas, historial, filtros y export CSV
+- [ ] Conectar pipeline CRM a datos reales de evaluación/score por empresa
 
 ## DevOps
-
-- [ ] Configurar SES con template de invitación outreach (REQ-5.6)
-- [ ] Configurar Lambda para procesamiento asíncrono de invitaciones masivas (REQ-5.1)
+- [future] Configurar SES con templates de invitación
+- [future] Configurar cola asíncrona para envío masivo

@@ -26,13 +26,13 @@ La siguiente imagen muestra la funcionalidad de descarga de reportes disponible 
 ![Descarga de Reporte](docs/images/Descarga_Reporte.png)
 
 <p align="center">
-  <a href="docs/README.md">
+  <a href="docs/03_Software_Requirements_Specification.md">
     <img src="https://img.shields.io/badge/📚_Documentación-0F172A?style=for-the-badge&logo=readthedocs&logoColor=38BDF8">
   </a>
-  <a href="docs/README.md">
+  <a href="docs/02_System_Architecture.md">
     <img src="https://img.shields.io/badge/🏛️_Arquitectura-1E1B4B?style=for-the-badge&logo=github&logoColor=A78BFA">
   </a>
-  <a href="docs/README.md">
+  <a href="docs/09_Roadmap.md">
     <img src="https://img.shields.io/badge/🚀_Roadmap-111827?style=for-the-badge&logo=rocket&logoColor=22D3EE">
   </a>
 </p>

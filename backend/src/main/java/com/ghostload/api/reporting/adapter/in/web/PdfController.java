@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ public class PdfController {
     public ReportResponse status(
             @PathVariable UUID evaluationId,
             @RequestHeader("X-Evaluation-Token") String evaluationToken) {
-        return toResponse(downloadReportPdf.status(evaluationId, evaluationToken));
+        return toResponse(downloadReportPdf.status(evaluationId, evaluationToken), evaluationId);
     }
 
     @GetMapping("/download")
@@ -53,19 +54,28 @@ public class PdfController {
             @RequestHeader("X-Evaluation-Token") String evaluationToken) {
         downloadReportPdf.retry(evaluationId, evaluationToken);
         ReportResponse response =
-                toResponse(downloadReportPdf.status(evaluationId, evaluationToken));
+                toResponse(downloadReportPdf.status(evaluationId, evaluationToken), evaluationId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
-    private ReportResponse toResponse(DownloadReportPdfUseCase.ReportStatus status) {
+    private ReportResponse toResponse(DownloadReportPdfUseCase.ReportStatus status, UUID evaluationId) {
         return new ReportResponse(
                 status.reportId(),
                 toApiStatus(status.status()),
                 status.fileName(),
-                status.downloadUrl(),
+                downloadUrlFor(evaluationId),
                 status.expiresAt(),
                 status.generatedAt(),
                 status.failureReason());
+    }
+
+    // La URL de descarga se construye a partir de la request actual (host y
+    // esquema reales), no de un valor fijo guardado en la base de datos.
+    private String downloadUrlFor(UUID evaluationId) {
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/v1/evaluations/{evaluationId}/report/download")
+                .buildAndExpand(evaluationId)
+                .toUriString();
     }
 
     private ReportStatus toApiStatus(PdfStatus status) {

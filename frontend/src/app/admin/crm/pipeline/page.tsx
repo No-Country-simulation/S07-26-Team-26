@@ -138,7 +138,7 @@ export default function CrmPipelinePage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">
             Pipeline comercial
           </h1>
           <p className="text-sm text-slate-400 mt-1">
@@ -226,7 +226,7 @@ export default function CrmPipelinePage() {
 
       {showCreate && (
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 space-y-4">
-          <h2 className="text-lg font-bold text-white">Nueva empresa en pipeline</h2>
+          <h2 className="text-lg font-bold text-slate-200">Nueva empresa en pipeline</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-xs text-slate-400 font-medium">
@@ -373,7 +373,7 @@ export default function CrmPipelinePage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">{selected.companyName}</h2>
+                <h2 className="text-lg font-bold text-slate-200">{selected.companyName}</h2>
                 <p className="text-sm text-slate-400">
                   {selected.contactName ?? '—'} {selected.email ? `· ${selected.email}` : ''}
                 </p>
@@ -464,7 +464,7 @@ export default function CrmPipelinePage() {
           <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
             <div className="flex items-center gap-2 mb-4">
               <History className="w-4 h-4 text-slate-500" />
-              <h2 className="text-lg font-bold text-white">Historial de cambios</h2>
+              <h2 className="text-lg font-bold text-slate-200">Historial de cambios</h2>
             </div>
             {selected.history.length > 0 ? (
               <ol className="relative border-l border-slate-800 ml-2 space-y-4">

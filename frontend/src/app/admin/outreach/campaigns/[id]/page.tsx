@@ -89,7 +89,7 @@ export default function CampaignTrackingPage() {
             <ArrowLeft className="w-3.5 h-3.5" />
             Volver a campañas
           </Link>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white mt-2">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-200 mt-2">
             {tracking.name}
           </h1>
           <p className="text-sm text-slate-400 mt-1">{tracking.subject}</p>
@@ -119,7 +119,7 @@ export default function CampaignTrackingPage() {
                 <Icon className="w-4 h-4" />
                 <p className="text-xs font-medium">{metric.label}</p>
               </div>
-              <p className="text-2xl font-extrabold text-white">
+              <p className="text-2xl font-extrabold text-slate-200">
                 {metric.value}
                 <span className="text-sm text-slate-500 font-normal">
                   {' '}
@@ -133,7 +133,7 @@ export default function CampaignTrackingPage() {
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">Tracking de invitaciones</h2>
+          <h2 className="text-lg font-bold text-slate-200">Tracking de invitaciones</h2>
           <span className="text-xs text-slate-500">
             {tracking.invitations.length} destinatarios
           </span>

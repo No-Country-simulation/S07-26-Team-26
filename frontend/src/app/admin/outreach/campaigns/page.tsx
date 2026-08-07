@@ -98,7 +98,7 @@ export default function OutreachCampaignsPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">Campañas</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">Campañas</h1>
           <p className="text-sm text-slate-400 mt-1">
             Crea y envía campañas de invitación a tus contactos.
           </p>
@@ -114,7 +114,7 @@ export default function OutreachCampaignsPage() {
 
       {showForm && (
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 space-y-4">
-          <h2 className="text-lg font-bold text-white">Nueva campaña</h2>
+          <h2 className="text-lg font-bold text-slate-200">Nueva campaña</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="block text-xs text-slate-400 font-medium">Nombre</label>
@@ -220,7 +220,7 @@ export default function OutreachCampaignsPage() {
       )}
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Todas las campañas</h2>
+        <h2 className="text-lg font-bold text-slate-200 mb-4">Todas las campañas</h2>
         {isLoading ? (
           <div className="grid grid-cols-1 gap-4">
             {[...Array(3)].map((_, i) => (

@@ -120,7 +120,7 @@ export default function OutreachImportPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">
           Importar contactos
         </h1>
         <p className="text-sm text-slate-400 mt-1">
@@ -308,7 +308,7 @@ export default function OutreachImportPage() {
       </section>
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
-        <h2 className="text-lg font-bold text-white mb-4">Importaciones recientes</h2>
+        <h2 className="text-lg font-bold text-slate-200 mb-4">Importaciones recientes</h2>
         {imports && imports.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

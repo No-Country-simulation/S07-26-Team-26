@@ -1,19 +1,371 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Ghost Load — DataCenter Benchmark
+   Paleta extraída de appwindows.webp:
+     Sidebar verde oscuro #2D5016 / acento verde #4CAF50
+   Dos temas: oscuro (default) y claro (.light en <html>).
+   ============================================================ */
+
+/* ── TEMA OSCURO (default) ─────────────────────────────────── */
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  color-scheme: dark;
+
+  /* Neutros — base oscura */
+  --gh-slate-50:  #f3f8f4;   /* texto sobre sidebar */
+  --gh-slate-100: #edf7ee;
+  --gh-slate-200: #c8d8c9;   /* texto primario claro */
+  --gh-slate-300: #9ab89b;
+  --gh-slate-400: #6d936e;
+  --gh-slate-500: #4d6b4e;
+  --gh-slate-600: #3a4f3b;   /* bordes sutiles */
+  --gh-slate-700: #2a3a2b;   /* bordes medios */
+  --gh-slate-800: #1e2b1f;   /* bordes oscuros / divisores */
+  --gh-slate-900: #162018;   /* superficie de panel */
+  --gh-slate-950: #0e160f;   /* fondo principal */
+
+  /* Sidebar — verde bosque profundo (color dominante del sidebar de la img) */
+  --gh-sidebar-bg:      #1a2e1b;   /* fondo del sidebar */
+  --gh-sidebar-border:  #2a3f2b;   /* borde derecho del sidebar */
+  --gh-sidebar-text:    #a8c5a9;   /* texto nav inactivo */
+  --gh-sidebar-active:  #4CAF50;   /* texto nav activo */
+  --gh-sidebar-activebg:#1f3d20;   /* fondo item activo */
+
+  /* Acento principal — verde brillante (#4CAF50 de los botones CTA de la img) */
+  --gh-green-100: #c8e6c9;
+  --gh-green-200: #a5d6a7;
+  --gh-green-300: #81c784;
+  --gh-green-400: #66bb6a;
+  --gh-green-500: #4CAF50;   /* CTA principal */
+  --gh-green-600: #3d8b3d;   /* hover */
+  --gh-green-700: #2e6b2e;   /* pressed */
+  --gh-green-900: #1b3d1b;
+
+  /* Verde secundario / KPI positivo */
+  --gh-emerald-400: #69bb6a;
+  --gh-emerald-500: #4CAF50;
+  --gh-emerald-600: #3d8b3d;
+
+  /* Acento alterno — conservado como verde-lima apagado */
+  --gh-indigo-100: #d4e8d4;
+  --gh-indigo-200: #a8cfa8;
+  --gh-indigo-300: #7ab87a;
+  --gh-indigo-400: #52a052;
+  --gh-indigo-500: #4CAF50;
+  --gh-indigo-600: #3d8b3d;
+  --gh-indigo-700: #2e6b2e;
+  --gh-indigo-900: #1a3d1a;
+
+  --gh-violet-400: #5a8f5b;
+  --gh-violet-500: #4a7a4b;
+  --gh-violet-600: #3a6a3b;
+
+  /* Naranja — alertas / badges "En progreso" de la img */
+  --gh-amber-400: #ffb74d;
+  --gh-amber-500: #ff9800;
+  --gh-orange-500: #ff9800;
+
+  /* Rojo — errores */
+  --gh-red-400: #ef5350;
+  --gh-red-500: #e53935;
+
+  /* Cyan — info */
+  --gh-cyan-500: #26c6da;
+  --gh-cyan-1:   #26c6da;
 }
 
+/* ── TEMA CLARO (.light en <html>) ────────────────────────── */
+:root:has(.light),
+.light {
+  color-scheme: light;
+
+  /* Neutros — base blanca limpia (paneles blancos de la img) */
+  --gh-slate-50:  #f8faf8;
+  --gh-slate-100: #f0f4f0;
+  --gh-slate-200: #212121;   /* texto primario casi negro */
+  --gh-slate-300: #333333;   /* textos oscuros */
+  --gh-slate-400: #424242;
+  --gh-slate-500: #555555;
+  --gh-slate-600: #6f6f6f;
+  --gh-slate-700: #bdbdbd;
+  --gh-slate-800: #e0e0e0;   /* bordes paneles (líneas grises finas de la img) */
+  --gh-slate-900: #ffffff;   /* superficie panel */
+  --gh-slate-950: #f5f7f5;   /* fondo general gris muy suave */
+
+  /* Sidebar — verde oscuro (sidebar izquierdo de la img: ~#2D5016) */
+  --gh-sidebar-bg:      #2D5016;
+  --gh-sidebar-border:  #1e3a0e;
+  --gh-sidebar-text:    #c8e6c0;
+  --gh-sidebar-active:  #ffffff;
+  --gh-sidebar-activebg:#4CAF50;
+
+  /* Acento principal — verde brillante */
+  --gh-green-100: #e8f5e9;
+  --gh-green-200: #c8e6c9;
+  --gh-green-300: #a5d6a7;
+  --gh-green-400: #66bb6a;
+  --gh-green-500: #4CAF50;
+  --gh-green-600: #43a047;
+  --gh-green-700: #388e3c;
+  --gh-green-900: #1b5e20;
+
+  --gh-emerald-400: #66bb6a;
+  --gh-emerald-500: #4CAF50;
+  --gh-emerald-600: #43a047;
+
+  /* Mapeado indigo → verde (mismo sistema de tokens) */
+  --gh-indigo-100: #e8f5e9;
+  --gh-indigo-200: #c8e6c9;
+  --gh-indigo-300: #a5d6a7;
+  --gh-indigo-400: #66bb6a;
+  --gh-indigo-500: #4CAF50;
+  --gh-indigo-600: #43a047;
+  --gh-indigo-700: #388e3c;
+  --gh-indigo-900: #1b5e20;
+
+  --gh-violet-50:  #f1f8f1;
+  --gh-violet-500: #4a7a4b;
+  --gh-violet-600: #3a6a3b;
+
+  /* Naranja — badges "En progreso" de la img */
+  --gh-amber-400: #ffa726;
+  --gh-amber-500: #ff9800;
+  --gh-orange-500: #ff9800;
+
+  --gh-red-400: #ef5350;
+  --gh-red-500: #e53935;
+
+  --gh-cyan-500: #00acc1;
+  --gh-cyan-1:   #00acc1;
+}
+
+/* ── TOKENS TAILWIND ──────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--gh-slate-950);
+  --color-foreground: var(--gh-slate-200);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-slate-50:  var(--gh-slate-50);
+  --color-slate-100: var(--gh-slate-100);
+  --color-slate-200: var(--gh-slate-200);
+  --color-slate-300: var(--gh-slate-300);
+  --color-slate-400: var(--gh-slate-400);
+  --color-slate-500: var(--gh-slate-500);
+  --color-slate-600: var(--gh-slate-600);
+  --color-slate-700: var(--gh-slate-700);
+  --color-slate-800: var(--gh-slate-800);
+  --color-slate-900: var(--gh-slate-900);
+  --color-slate-950: var(--gh-slate-950);
+
+  --color-indigo-100: var(--gh-indigo-100);
+  --color-indigo-200: var(--gh-indigo-200);
+  --color-indigo-300: var(--gh-indigo-300);
+  --color-indigo-400: var(--gh-indigo-400);
+  --color-indigo-500: var(--gh-indigo-500);
+  --color-indigo-600: var(--gh-indigo-600);
+  --color-indigo-700: var(--gh-indigo-700);
+  --color-indigo-900: var(--gh-indigo-900);
+
+  --color-violet-50:  var(--gh-violet-50);
+  --color-violet-500: var(--gh-violet-500);
+  --color-violet-600: var(--gh-violet-600);
+
+  --color-emerald-400: var(--gh-emerald-400);
+  --color-emerald-500: var(--gh-emerald-500);
+  --color-emerald-600: var(--gh-emerald-600);
+
+  --color-green-100: var(--gh-green-100);
+  --color-green-200: var(--gh-green-200);
+  --color-green-300: var(--gh-green-300);
+  --color-green-400: var(--gh-green-400);
+  --color-green-500: var(--gh-green-500);
+  --color-green-600: var(--gh-green-600);
+  --color-green-700: var(--gh-green-700);
+  --color-green-900: var(--gh-green-900);
+
+  --color-amber-400:  var(--gh-amber-400);
+  --color-amber-500:  var(--gh-amber-500);
+  --color-orange-500: var(--gh-orange-500);
+
+  --color-red-400: var(--gh-red-400);
+  --color-red-500: var(--gh-red-500);
+
+  --color-cyan-500: var(--gh-cyan-500);
+  --color-cyan-1:   var(--gh-cyan-1);
+
+  /* Tokens semánticos del sidebar */
+  --color-sidebar-bg:       var(--gh-sidebar-bg);
+  --color-sidebar-border:   var(--gh-sidebar-border);
+  --color-sidebar-text:     var(--gh-sidebar-text);
+  --color-sidebar-active:   var(--gh-sidebar-active);
+  --color-sidebar-activebg: var(--gh-sidebar-activebg);
+}
+
+/* ── TRANSICIONES DE TEMA ─────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
+@property --gh-slate-200 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c8d8c9;
+}
+@property --gh-slate-400 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #6d936e;
+}
+@property --gh-slate-500 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4d6b4e;
+}
+@property --gh-slate-800 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1e2b1f;
+}
+@property --gh-slate-900 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #162018;
+}
+@property --gh-slate-950 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #0e160f;
+}
+@property --gh-indigo-500 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4CAF50;
+}
+@property --gh-indigo-600 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #3d8b3d;
+}
+@property --gh-emerald-500 {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #4CAF50;
+}
+@property --gh-sidebar-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1a2e1b;
+}
+@property --gh-sidebar-activebg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1f3d20;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--gh-slate-950);
+  color: var(--gh-slate-200);
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.4s ease, color 0.4s ease;
+  transition-behavior: allow-discrete;
+}
+
+/* Paneles y superficies — transición suave al cambiar tema */
+.theme-surface {
+  transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+}
+
+/* ── COMPONENTES BASE ─────────────────────────────────────── */
+
+/* Tarjeta — estilo limpio de la app de la imagen (sin pixel-art) */
+.pixel-card {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--gh-slate-800);
+  background: var(--gh-slate-900);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+/* Foco accesible en verde */
+*:focus-visible {
+  outline: 2px solid var(--gh-green-500);
+  outline-offset: 2px;
+}
+
+/* Transición rápida para botones */
+:is(button, [role="button"], a[href]):not(.pixel-plain) {
+  transition: background-color 0.15s ease, color 0.15s ease,
+              border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ── SIDEBAR SEMÁNTICO ────────────────────────────────────── */
+/* Clases utilitarias que usan los tokens del sidebar */
+.sidebar-root {
+  background-color: var(--gh-sidebar-bg);
+  border-color: var(--gh-sidebar-border);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+.sidebar-nav-item {
+  color: var(--gh-sidebar-text);
+}
+.sidebar-nav-item:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.sidebar-nav-item.active {
+  color: var(--gh-sidebar-active);
+  background-color: var(--gh-sidebar-activebg);
+}
+
+/* ── BADGES DE ESTADO (de la imagen) ─────────────────────── */
+.badge-completed {
+  background-color: var(--gh-green-100);
+  color: var(--gh-green-700);
+  border: 1px solid var(--gh-green-300);
+}
+.badge-progress {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+.badge-pending {
+  background-color: var(--gh-slate-100);
+  color: var(--gh-slate-500);
+  border: 1px solid var(--gh-slate-700);
+}
+
+/* En tema oscuro los badges se invierten */
+:root:not(.light) .badge-completed {
+  background-color: rgba(76, 175, 80, 0.15);
+  color: var(--gh-green-300);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+:root:not(.light) .badge-progress {
+  background-color: rgba(255, 152, 0, 0.15);
+  color: var(--gh-amber-400);
+  border-color: rgba(255, 152, 0, 0.3);
+}
+:root:not(.light) .badge-pending {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--gh-slate-400);
+  border-color: var(--gh-slate-700);
+}
+
+/* ── SCROLLBAR TEMÁTICA ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--gh-slate-950);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gh-slate-700);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gh-green-600);
 }

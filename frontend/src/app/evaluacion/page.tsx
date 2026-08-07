@@ -93,7 +93,7 @@ export default function EvaluacionPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-sm font-medium">
             <Sprout className="w-4 h-4" /> Evaluación de madurez energética
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-200 via-slate-400 to-slate-600">
             Ghost Load
           </h1>
           <p className="text-sm text-slate-400">Descubre el estado de tu operación y qué tan despejada está tu carga fantasma.</p>
@@ -150,11 +150,11 @@ function Stepper({ active }: { active: AssessmentStep }) {
 
 function Card({ title, subtitle, icon, children }: { title: string; subtitle: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl">
+    <div className="pixel-card theme-surface p-6 shadow-2xl">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">{icon}</div>
         <div>
-          <h2 className="text-xl font-bold text-white">{title}</h2>
+          <h2 className="text-xl font-bold text-slate-200">{title}</h2>
           <p className="text-xs text-slate-500">{subtitle}</p>
         </div>
       </div>

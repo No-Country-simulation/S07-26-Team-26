@@ -62,7 +62,7 @@ export default function AdminOperatorsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">
             Operadores
           </h1>
           <p className="text-sm text-slate-400 mt-1">

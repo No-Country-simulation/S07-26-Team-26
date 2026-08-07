@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-md px-6 relative z-10">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-8 shadow-2xl">
           <div className="mb-8 text-center space-y-2">
-            <h1 className="text-2xl font-extrabold tracking-tight text-white">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">
               Ghost Load Admin
             </h1>
             <p className="text-sm text-slate-400">

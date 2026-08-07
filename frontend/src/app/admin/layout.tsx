@@ -50,15 +50,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen">
-      <aside className="fixed inset-y-0 left-0 w-60 border-r border-slate-800 bg-slate-950/80 backdrop-blur-xl hidden md:flex flex-col">
-        <div className="px-5 py-5 border-b border-slate-800">
+      <aside
+        className="fixed top-14 bottom-0 left-0 w-60 border-r hidden md:flex flex-col theme-surface sidebar-root"
+        style={{ borderRightColor: 'var(--gh-sidebar-border)' }}
+      >
+        {/* Logo / título */}
+        <div
+          className="px-5 py-5 border-b"
+          style={{ borderBottomColor: 'var(--gh-sidebar-border)' }}
+        >
           <p className="text-lg font-extrabold tracking-tight text-white">
-            Ghost Load
+            DataCenter
           </p>
-          <p className="text-xs text-slate-500">Panel de administración</p>
+          <p
+            className="text-xs font-semibold tracking-widest uppercase"
+            style={{ color: 'var(--gh-green-400)' }}
+          >
+            Benchmark
+          </p>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        {/* Navegación */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = pathname.startsWith(item.href);
@@ -66,34 +79,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? 'bg-indigo-500/10 border border-indigo-500/25 text-indigo-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                className={`sidebar-nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                  active ? 'active' : ''
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 flex-shrink-0" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="px-5 py-4 border-t border-slate-800 space-y-3">
+        {/* Perfil + logout */}
+        <div
+          className="px-4 py-4 border-t space-y-3"
+          style={{ borderTopColor: 'var(--gh-sidebar-border)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-sm font-bold">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+              style={{ backgroundColor: 'var(--gh-green-600)' }}
+            >
               {(admin?.name ?? 'A').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-200 truncate">
+              <p
+                className="text-sm font-semibold truncate"
+                style={{ color: 'var(--gh-sidebar-active)' }}
+              >
                 {admin?.name ?? 'Administrador'}
               </p>
-              <p className="text-xs text-slate-500 truncate">{admin?.email}</p>
+              <p className="text-xs truncate" style={{ color: 'var(--gh-sidebar-text)' }}>
+                {admin?.email}
+              </p>
             </div>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 text-sm font-medium hover:bg-slate-800 hover:text-slate-200 transition-all"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all"
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              color: 'var(--gh-sidebar-text)',
+              border: '1px solid var(--gh-sidebar-border)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.35)';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.2)';
+              e.currentTarget.style.color = 'var(--gh-sidebar-text)';
+            }}
           >
             <LogOut className="w-4 h-4" />
             Cerrar sesión

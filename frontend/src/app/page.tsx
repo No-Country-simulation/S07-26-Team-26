@@ -1,336 +1,251 @@
-'use client';
-
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useCounterStore } from '@/store/counterStore';
-import { 
-  Users, 
-  RotateCw, 
-  Plus, 
-  Minus, 
-  RefreshCcw, 
-  Search, 
-  Cpu, 
-  Database, 
-  Compass, 
-  ExternalLink,
-  Mail,
-  Briefcase,
-  Layers
+import Link from 'next/link';
+import {
+  ArrowRight,
+  Calculator,
+  ClipboardList,
+  FileText,
+  Gauge,
+  Leaf,
+  Server,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  website: string;
-  company: {
-    name: string;
-  };
-}
+export const metadata = {
+  title: 'Ghost Load — Benchmark de madurez energética',
+  description:
+    'Detecta la carga fantasma de tu data center: calcula capacidad desperdiciada, compara tu operación con la industria y genera tu reporte institucional.',
+};
+
+const KPI_ITEMS = [
+  {
+    icon: Gauge,
+    title: 'Capacity Calculator',
+    description:
+      'Estima tu capacidad no productiva en MW y el porcentaje real de utilización de tu infraestructura.',
+  },
+  {
+    icon: ClipboardList,
+    title: 'Benchmark Engine',
+    description:
+      'Compara tu operación contra estándares de la industria y obtén un nivel de madurez por módulo.',
+  },
+  {
+    icon: FileText,
+    title: 'Reporte institucional',
+    description:
+      'Genera un reporte en PDF con tus KPIs clave para transformar tu operación en un lead calificado.',
+  },
+];
+
+const STEPS = [
+  {
+    number: '01',
+    icon: Calculator,
+    title: 'Calcula',
+    description: 'Ingresá tu capacidad total y productiva para conocer cuánta carga se desperdicia.',
+  },
+  {
+    number: '02',
+    icon: ClipboardList,
+    title: 'Benchmark',
+    description: 'Respondé el cuestionario de madurez y comparate según tu nivel de automatización y gobernanza.',
+  },
+  {
+    number: '03',
+    icon: FileText,
+    title: 'Reporte',
+    description: 'Descargá el informe institucional con tus resultados de madurez y capacidad.',
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: '¿Qué es la carga fantasma?',
+    answer: 'Es la capacidad de tu data center que consume energía sin generar valor productivo real: recursos infrautilizados o desperdiciados.',
+  },
+  {
+    question: '¿Cuánto tarda la evaluación?',
+    answer: 'Unos pocos minutos: completás la calculadora y el benchmark, y tu informe se genera automáticamente.',
+  },
+  {
+    question: '¿Es gratuita?',
+    answer: 'Sí. La evaluación es una herramienta de alto valor para conocer tu operación sin costo alguno.',
+  },
+];
 
 export default function Home() {
-  const { count, increment, decrement, reset, userFilter, setUserFilter } = useCounterStore();
-
-  const { 
-    data: users, 
-    isLoading, 
-    isError, 
-    error, 
-    isFetching, 
-    refetch, 
-    dataUpdatedAt 
-  } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: async () => {
-      // Simulate slow network to demonstrate loader aesthetics
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      const res = await fetch('https://jsonplaceholder.typicode.com/users');
-      if (!res.ok) throw new Error('Error al obtener los usuarios');
-      return res.json();
-    },
-  });
-
-  // Filter users based on search string from Zustand store
-  const filteredUsers = users?.filter(user =>
-    user.name.toLowerCase().includes(userFilter.toLowerCase()) ||
-    user.email.toLowerCase().includes(userFilter.toLowerCase()) ||
-    user.company.name.toLowerCase().includes(userFilter.toLowerCase())
-  );
-
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      {/* Decorative Ambient Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+    <div className="relative overflow-hidden">
+      {/* Decorative ambient glows */}
+      <div className="pointer-events-none absolute top-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-green-500/10 blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] h-[50%] w-[50%] rounded-full bg-indigo-500/10 blur-[120px]" />
 
-      {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header */}
-        <header className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-sm font-medium mb-2 backdrop-blur-md">
-            <Layers className="w-4 h-4" /> Next.js Base Project ready
+      <div className="relative z-10">
+        {/* Hero */}
+        <section className="mx-auto max-w-7xl px-4 pt-16 pb-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center">
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-green-500/25 bg-green-500/10 px-3 py-1.5 text-sm font-medium text-green-500">
+              <Leaf className="h-4 w-4" /> Benchmark de energía para Data Centers
+            </span>
+            <h1 className="text-4xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-green-300 via-slate-200 to-indigo-300 sm:text-5xl lg:text-6xl">
+              Detectá la carga fantasma de tu data center
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base text-slate-400 sm:text-lg">
+              Ghost Load convierte a operadores de DC en leads calificados mediante herramientas
+              gratuitas de alto valor: una calculadora de capacidad y un benchmark de madurez.
+            </p>
+            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              <Link
+                href="/evaluacion"
+                className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-400"
+              >
+                Empezar evaluación <ArrowRight className="h-4 w-4" />
+              </Link>
+              <span className="text-sm text-slate-500">
+                100% gratuito · sin cargo · informe automático
+              </span>
+            </div>
           </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-            Next.js Stack Starter
-          </h1>
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400">
-            Un entorno moderno preconfigurado con Tailwind CSS, Zustand para estado global y React Query para estado del servidor.
+
+          {/* Trust / insight strip */}
+          <div className="mt-20 grid grid-cols-1 gap-6 sm:grid-cols-3">
+            {KPI_ITEMS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.label}
+                  className="pixel-card theme-surface p-6"
+                >
+                  <div className="mb-4 inline-flex rounded-lg bg-green-500/10 p-2.5 text-green-400">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-200">{item.title}</h3>
+                  <p className="mt-2 text-sm text-slate-400">{item.description}</p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Value metrics */}
+        <section className="border-y border-slate-800 bg-slate-900/20 theme-surface py-14">
+          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-8 px-4 text-center sm:px-6 lg:grid-cols-4 lg:px-8">
+            <div>
+              <p className="flex items-center justify-center gap-1.5 text-2xl font-extrabold text-slate-200">
+                <TrendingUp className="h-5 w-5 text-green-500" /> % de utilización
+              </p>
+              <p className="mt-1 text-xs text-slate-500">Capacidad realmente productiva</p>
+            </div>
+            <div>
+              <p className="flex items-center justify-center gap-1.5 text-2xl font-extrabold text-slate-200">
+                <Server className="h-5 w-5 text-green-500" /> MW desperdíciados
+              </p>
+              <p className="mt-1 text-xs text-slate-500">Capacidad no productiva identificada</p>
+            </div>
+            <div>
+              <p className="flex items-center justify-center gap-1.5 text-2xl font-extrabold text-slate-200">
+                <Target className="h-5 w-5 text-green-500" /> Nivel de madurez
+              </p>
+              <p className="mt-1 text-xs text-slate-500">Por módulo de operación</p>
+            </div>
+            <div>
+              <p className="flex items-center justify-center gap-1.5 text-2xl font-extrabold text-slate-200">
+                <Users className="h-5 w-5 text-green-500" /> Lead calificado
+              </p>
+              <p className="mt-1 text-xs text-slate-500">Con reporte institucional</p>
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/25 bg-indigo-500/10 px-3 py-1.5 text-sm font-medium text-indigo-400">
+              <Sparkles className="h-4 w-4" /> ¿Cómo funciona?
+            </span>
+            <h2 className="mt-6 text-3xl font-extrabold text-slate-200 sm:text-4xl">
+              Tres pasos para conocer tu operación
+            </h2>
+          </div>
+
+          <div className="mt-14 grid grid-cols-1 gap-8 sm:grid-cols-3">
+            {STEPS.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.number} className="pixel-card theme-surface relative p-6">
+                  <span className="absolute right-6 top-6 text-5xl font-extrabold text-slate-800">
+                    {step.number}
+                  </span>
+                  <div className="mb-4 inline-flex rounded-lg bg-green-500/10 p-2.5 text-green-400">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-200">{step.title}</h3>
+                  <p className="mt-2 text-sm text-slate-400">{step.description}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-14 text-center">
+            <Link
+              href="/evaluacion"
+              className="inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-400"
+            >
+              Comenzar mi benchmark <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="border-t border-slate-800 bg-slate-900/20 theme-surface py-20">
+          <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-center text-3xl font-extrabold text-slate-200 sm:text-4xl">
+              Preguntas frecuentes
+            </h2>
+            <div className="mt-12 space-y-4">
+              {FAQ_ITEMS.map((item) => (
+                <div key={item.question} className="pixel-card theme-surface p-6">
+                  <h3 className="font-semibold text-slate-200">{item.question}</h3>
+                  <p className="mt-2 text-sm text-slate-400">{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="mx-auto max-w-7xl px-4 py-20 text-center sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-slate-200 sm:text-4xl">
+            ¿Despejada tu carga fantasma?
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-slate-400">
+            Calculá tu capacidad, compará tu madurez y generá tu reporte institucional en minutos.
           </p>
-
-          {/* Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Next.js 15 (App Router)
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Tailwind CSS
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Zustand v5
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              React Query v5
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              TypeScript
-            </span>
-          </div>
-        </header>
-
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT: Zustand Controls (col-span-4) */}
-          <section className="lg:col-span-4 space-y-6">
-            
-            {/* Zustand Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all duration-300" />
-              
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                  <Cpu className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Estado Global</h2>
-                  <p className="text-xs text-slate-500">Manejado por Zustand Store</p>
-                </div>
-              </div>
-
-              {/* Counter Demo */}
-              <div className="space-y-4 bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 mb-6">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Demo Contador</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-extrabold text-white font-mono">{count}</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={decrement}
-                      className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
-                      title="Decrementar"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={increment}
-                      className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
-                      title="Incrementar"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={reset}
-                      className="p-2 rounded-lg bg-slate-800/50 border border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-all hover:scale-105 active:scale-95"
-                      title="Resetear"
-                    >
-                      <RefreshCcw className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Search Filter input */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Filtro de Usuarios</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="text"
-                    value={userFilter}
-                    onChange={(e) => setUserFilter(e.target.value)}
-                    placeholder="Filtrar por nombre, email o compañía..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all text-sm"
-                  />
-                </div>
-                {userFilter && (
-                  <p className="text-xs text-indigo-400 flex items-center gap-1.5 pt-1">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    Filtro activo sincronizado globalmente
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Structure info Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-300">Ubicaciones clave del proyecto:</h3>
-              <ul className="text-xs text-slate-400 space-y-2 font-mono">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Store Zustand: <span className="text-slate-300 ml-auto">src/store/counterStore.ts</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Provider Query: <span className="text-slate-300 ml-auto">src/providers/QueryProvider.tsx</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Página principal: <span className="text-slate-300 ml-auto">src/app/page.tsx</span>
-                </li>
-              </ul>
-            </div>
-          </section>
-
-          {/* RIGHT: React Query Data Display (col-span-8) */}
-          <section className="lg:col-span-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-all duration-300" />
-
-              {/* Card Header & Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-800/80 pb-5">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Estado del Servidor</h2>
-                    <p className="text-xs text-slate-500">Manejado por React Query & Fetching Asíncrono</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {dataUpdatedAt > 0 && (
-                    <span className="text-[11px] text-slate-500 font-mono hidden sm:inline-block">
-                      Act. {new Date(dataUpdatedAt).toLocaleTimeString()}
-                    </span>
-                  )}
-                  <button
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-700 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <RotateCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-violet-400' : ''}`} />
-                    {isFetching ? 'Actualizando...' : 'Refrescar'}
-                  </button>
-                </div>
-              </div>
-
-              {/* React Query State Content */}
-              {isLoading ? (
-                // Shimmer Skeletons
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="border border-slate-800/60 rounded-xl p-4 bg-slate-950/20 space-y-3 animate-pulse">
-                      <div className="h-4 bg-slate-800 rounded w-3/4" />
-                      <div className="h-3 bg-slate-800 rounded w-1/2" />
-                      <div className="h-3 bg-slate-800 rounded w-5/6" />
-                    </div>
-                  ))}
-                </div>
-              ) : isError ? (
-                // Error State
-                <div className="p-6 rounded-xl border border-red-500/20 bg-red-500/5 text-center space-y-3">
-                  <p className="text-red-400 font-semibold">Error al cargar datos</p>
-                  <p className="text-xs text-slate-400">{error?.message || 'Algo salió mal al obtener los usuarios del servidor de pruebas.'}</p>
-                  <button 
-                    onClick={() => refetch()}
-                    className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-all"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              ) : filteredUsers && filteredUsers.length > 0 ? (
-                // User Grid
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {filteredUsers.map((user) => (
-                    <div 
-                      key={user.id} 
-                      className="group/item border border-slate-850 hover:border-slate-700/60 rounded-xl p-4 bg-slate-950/30 hover:bg-slate-950/60 transition-all duration-200 shadow-md relative overflow-hidden"
-                    >
-                      <div className="flex flex-col h-full justify-between gap-3">
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-bold text-slate-200 group-hover/item:text-white transition-colors">
-                              {user.name}
-                            </h3>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-850 text-slate-500">
-                              ID {user.id}
-                            </span>
-                          </div>
-
-                          {/* Email */}
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <Mail className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="truncate">{user.email}</span>
-                          </div>
-
-                          {/* Company */}
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <Briefcase className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="truncate">{user.company.name}</span>
-                          </div>
-                        </div>
-
-                        {/* Website external link */}
-                        <div className="pt-2 border-t border-slate-900/50 flex items-center justify-between">
-                          <a 
-                            href={`https://${user.website}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold"
-                          >
-                            <Compass className="w-3 h-3" />
-                            {user.website}
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // Empty filtered state
-                <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl text-slate-500 space-y-2">
-                  <Users className="w-8 h-8 mx-auto text-slate-600" />
-                  <p className="text-sm font-medium">Ningún usuario coincide con tu filtro</p>
-                  <p className="text-xs">Prueba escribiendo otra palabra o limpia el buscador de Zustand.</p>
-                  <button 
-                    onClick={() => setUserFilter('')}
-                    className="text-xs text-indigo-400 font-semibold hover:underline"
-                  >
-                    Limpiar filtro
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-
-        </div>
+          <Link
+            href="/evaluacion"
+            className="mt-8 inline-flex items-center gap-2 rounded-lg bg-green-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-green-400"
+          >
+            Comenzar ahora <ArrowRight className="h-4 w-4" />
+          </Link>
+        </section>
 
         {/* Footer */}
-        <footer className="mt-20 border-t border-slate-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Enterprise Stack Boilerplate. Desarrollado con Next.js + Zustand + React Query.</p>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Tailwind V4 Listo
-            </span>
-            <span>·</span>
-            <span>Control de Estado Activo</span>
+        <footer className="border-t border-slate-800 py-8">
+          <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-xs text-slate-500 sm:flex-row sm:px-6 lg:px-8">
+            <p>© {new Date().getFullYear()} Ghost Load — DataCenter Benchmark.</p>
+            <div className="flex items-center gap-4">
+              <Link href="/evaluacion" className="transition-colors hover:text-green-400">
+                Evaluación
+              </Link>
+              <Link href="/admin/login" className="transition-colors hover:text-green-400">
+                Acceso admin
+              </Link>
+            </div>
           </div>
         </footer>
-
       </div>
     </div>
   );

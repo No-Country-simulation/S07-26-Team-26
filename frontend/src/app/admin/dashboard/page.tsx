@@ -116,7 +116,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-white">
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-200">
           Resumen de actividad
         </h1>
         <p className="text-sm text-slate-400 mt-1">
@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
                   {kpi.label}
                 </p>
               </div>
-              <p className="text-2xl font-extrabold text-white">{kpi.value}</p>
+              <p className="text-2xl font-extrabold text-slate-200">{kpi.value}</p>
             </div>
           );
         })}
@@ -149,7 +149,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold text-slate-200 mb-4">
             Distribución de madurez
           </h2>
           <ul className="space-y-3">
@@ -176,7 +176,7 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
-          <h2 className="text-lg font-bold text-white mb-4">
+          <h2 className="text-lg font-bold text-slate-200 mb-4">
             Promedio por módulo
           </h2>
           <ul className="space-y-3">
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
 
       <section className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-white">Respuestas recientes</h2>
+          <h2 className="text-lg font-bold text-slate-200">Respuestas recientes</h2>
           <span className="text-xs text-slate-500">Últimas evaluaciones completadas</span>
         </div>
         {recentResponses && recentResponses.items.length > 0 ? (

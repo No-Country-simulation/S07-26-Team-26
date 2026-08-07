@@ -24,6 +24,9 @@
   --gh-slate-900: #162018;   /* superficie de panel */
   --gh-slate-950: #0e160f;   /* fondo principal */
 
+  /* Texto de marca junto al logo: blanco (tema oscuro) */
+  --gh-brand-text: #ffffff;
+
   /* Sidebar — verde bosque profundo (color dominante del sidebar de la img) */
   --gh-sidebar-bg:      #1a2e1b;   /* fondo del sidebar */
   --gh-sidebar-border:  #2a3f2b;   /* borde derecho del sidebar */
@@ -91,6 +94,9 @@
   --gh-slate-800: #e0e0e0;   /* bordes paneles (líneas grises finas de la img) */
   --gh-slate-900: #ffffff;   /* superficie panel */
   --gh-slate-950: #f5f7f5;   /* fondo general gris muy suave */
+
+  /* Texto de marca junto al logo: verde oscuro (tema claro) */
+  --gh-brand-text: #1b5e20;
 
   /* Sidebar — verde oscuro (sidebar izquierdo de la img: ~#2D5016) */
   --gh-sidebar-bg:      #2D5016;

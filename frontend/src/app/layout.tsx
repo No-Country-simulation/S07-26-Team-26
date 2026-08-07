@@ -41,6 +41,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body
+        suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-slate-950 selection:bg-indigo-500 selection:text-white transition-colors duration-500`}
       >
         <SiteHeader />

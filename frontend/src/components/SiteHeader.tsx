@@ -19,6 +19,12 @@ export default function SiteHeader() {
         className="h-8 sm:h-9 w-auto object-contain"
         style={{ objectFit: 'contain' }}
       />
+      <span
+        className="text-lg sm:text-xl font-extrabold tracking-tight"
+        style={{ color: 'var(--gh-brand-text)' }}
+      >
+        Ghost Load
+      </span>
     </header>
   );
 }

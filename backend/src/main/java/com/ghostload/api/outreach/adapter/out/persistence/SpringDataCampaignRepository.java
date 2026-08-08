@@ -7,9 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 interface SpringDataCampaignRepository extends JpaRepository<CampaignJpaEntity, UUID> {
+
+    List<CampaignJpaEntity> findAllByOrderByCreatedAtDesc();
+
+    List<CampaignJpaEntity> findAllByStatusOrderByCreatedAtDesc(
+            CampaignStatus status);
 
     @Modifying
     @Query("""

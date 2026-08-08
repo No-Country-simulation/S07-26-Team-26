@@ -111,7 +111,19 @@ informa contactos válidos, nuevos, existentes, duplicados y filas inválidas.
 
 La importación no envía correos.
 
-## 3.4. Crear una campaña
+## 3.4. Listar importaciones utilizables
+
+```http
+GET /api/v1/admin/contact-imports
+Authorization: Bearer <ACCESS_TOKEN>
+```
+
+Devuelve, sin paginación, las importaciones `COMPLETED` que tienen al menos un
+contacto válido. Se ordenan desde la más reciente y permiten construir un
+dropdown como `Contactos agosto (45)`. El `importId` seleccionado se envía como
+`contactImportId` al crear la campaña.
+
+## 3.5. Crear una campaña
 
 ```http
 POST /api/v1/admin/campaigns
@@ -138,7 +150,21 @@ La respuesta contiene `id`, que corresponde al identificador de la campaña.
 La campaña queda en estado `READY` y se genera una invitación única por
 contacto. Este endpoint todavía no envía los correos.
 
-## 3.5. Enviar una campaña
+## 3.6. Listar campañas
+
+```http
+GET /api/v1/admin/campaigns
+GET /api/v1/admin/campaigns?status=READY
+Authorization: Bearer <ACCESS_TOKEN>
+```
+
+Sin `status` devuelve todas las campañas. El filtro acepta `DRAFT`, `READY`,
+`SENDING`, `ACTIVE`, `COMPLETED` o `FAILED`, sin distinguir mayúsculas y
+minúsculas. La respuesta no usa paginación y se ordena desde la campaña más
+reciente. Para el dropdown de campañas todavía no enviadas, Frontend debe usar
+`status=READY`.
+
+## 3.7. Enviar una campaña
 
 ```http
 POST /api/v1/admin/campaigns/{campaignId}/send
@@ -407,7 +433,9 @@ No requieren autenticación.
 | `POST` | `/api/v1/admin/auth/login` | Login administrativo |
 | `POST` | `/api/v1/admin/email/test-connection` | Diagnóstico SMTP |
 | `POST` | `/api/v1/admin/contact-imports` | Importar contactos CSV |
+| `GET` | `/api/v1/admin/contact-imports` | Listar importaciones utilizables |
 | `POST` | `/api/v1/admin/campaigns` | Crear campaña |
+| `GET` | `/api/v1/admin/campaigns?status=READY` | Listar o filtrar campañas |
 | `POST` | `/api/v1/admin/campaigns/{campaignId}/send` | Encolar envío de campaña |
 | `GET` | `/api/v1/invitations/{invitationToken}` | Resolver invitación |
 | `POST` | `/api/v1/evaluations` | Crear evaluación |
@@ -433,4 +461,3 @@ controllers funcionales para:
 - recuperar un token de evaluación perdido;
 - dashboard administrativo;
 - percentil real basado en una distribución acumulada.
-

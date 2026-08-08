@@ -3,6 +3,7 @@ package com.ghostload.api.outreach.adapter.in.web;
 import com.ghostload.api.outreach.application.port.in.ImportContactsCommand;
 import com.ghostload.api.outreach.application.port.in.ImportContactsResult;
 import com.ghostload.api.outreach.application.port.in.ImportContactsUseCase;
+import com.ghostload.api.outreach.application.port.in.ListContactImportsUseCase;
 import com.ghostload.api.outreach.domain.model.ContactImportStatus;
 import com.ghostload.api.shared.adapter.in.web.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,7 +45,10 @@ class ContactImportControllerTest {
                     Instant.parse("2026-07-26T12:00:00Z"));
         };
         ContactImportController controller =
-                new ContactImportController(useCase, new ContactImportWebMapper());
+                new ContactImportController(
+                        useCase,
+                        List::of,
+                        new ContactImportWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -71,5 +76,33 @@ class ContactImportControllerTest {
         assertThat(receivedCommand.get().originalFilename()).isEqualTo("contacts.csv");
         assertThat(new String(receivedCommand.get().content(), StandardCharsets.UTF_8))
                 .contains("ana@empresa.com");
+    }
+
+    @Test
+    void shouldReturnEligibleContactImportsForDropdown() throws Exception {
+        UUID importId = UUID.fromString("257db69e-e08a-4a62-bcdb-0c6465164bdd");
+        Instant createdAt = Instant.parse("2026-08-07T15:30:00Z");
+        ListContactImportsUseCase listUseCase = () -> List.of(
+                new ListContactImportsUseCase.ContactImportSummary(
+                        importId,
+                        "Contactos agosto",
+                        45,
+                        createdAt));
+        ContactImportController controller = new ContactImportController(
+                command -> {
+                    throw new AssertionError("No debe importarse un archivo.");
+                },
+                listUseCase,
+                new ContactImportWebMapper());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        mockMvc.perform(get("/api/v1/admin/contact-imports"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].importId").value(importId.toString()))
+                .andExpect(jsonPath("$[0].name").value("Contactos agosto"))
+                .andExpect(jsonPath("$[0].validContacts").value(45))
+                .andExpect(jsonPath("$[0].createdAt").value(createdAt.toString()));
     }
 }

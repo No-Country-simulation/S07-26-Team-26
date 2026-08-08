@@ -2,6 +2,8 @@ package com.ghostload.api.outreach.adapter.out.persistence;
 
 import com.ghostload.api.outreach.application.port.out.LoadCampaignAudiencePort;
 import com.ghostload.api.outreach.application.port.out.LoadCampaignDeliveryPort;
+import com.ghostload.api.outreach.application.port.out.LoadCampaignsPort;
+import com.ghostload.api.outreach.application.port.out.LoadContactImportsPort;
 import com.ghostload.api.outreach.application.port.out.LoadExistingContactsPort;
 import com.ghostload.api.outreach.application.port.out.QueueCampaignEmailsPort;
 import com.ghostload.api.outreach.application.port.out.SaveCampaignPort;
@@ -12,6 +14,7 @@ import com.ghostload.api.outreach.domain.model.CampaignStatus;
 import com.ghostload.api.outreach.domain.model.Contact;
 import com.ghostload.api.outreach.domain.model.ContactEmail;
 import com.ghostload.api.outreach.domain.model.ContactImport;
+import com.ghostload.api.outreach.domain.model.ContactImportStatus;
 import com.ghostload.api.outreach.domain.model.Invitation;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,8 @@ public class OutreachPersistenceAdapter
         implements LoadExistingContactsPort,
         SaveContactImportBatchPort,
         LoadCampaignAudiencePort,
+        LoadContactImportsPort,
+        LoadCampaignsPort,
         SaveCampaignPort,
         LoadCampaignDeliveryPort,
         QueueCampaignEmailsPort {
@@ -96,6 +101,27 @@ public class OutreachPersistenceAdapter
                                 .stream()
                                 .map(this::toDomain)
                                 .toList()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ContactImport> loadEligible() {
+        return contactImportRepository
+                .findAllByStatusAndValidContactsGreaterThanOrderByCreatedAtDesc(
+                        ContactImportStatus.COMPLETED,
+                        0)
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Campaign> load(CampaignStatus status) {
+        List<CampaignJpaEntity> campaigns = status == null
+                ? campaignRepository.findAllByOrderByCreatedAtDesc()
+                : campaignRepository.findAllByStatusOrderByCreatedAtDesc(status);
+        return campaigns.stream().map(this::toDomain).toList();
     }
 
     @Override

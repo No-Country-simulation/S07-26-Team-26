@@ -1,0 +1,42 @@
+[
+  {
+    "id": "admin-root",
+    "name": "Root Admin",
+    "email": "root@ghostload.com",
+    "role": "ROOT_ADMIN",
+    "status": "Active",
+    "createdAt": "2026-01-02",
+    "avatar": "gold",
+    "lastAccess": "2026-01-02"
+  },
+  {
+    "id": "admin-001",
+    "name": "Priya Nathan",
+    "email": "priya.nathan@ghostload.com",
+    "role": "ADMIN",
+    "status": "Active",
+    "createdAt": "2026-01-15",
+    "avatar": "grass",
+    "lastAccess": "2026-01-15"
+  },
+  {
+    "id": "admin-002",
+    "name": "Marcus Webb",
+    "email": "marcus.webb@ghostload.com",
+    "role": "ADMIN",
+    "status": "Active",
+    "createdAt": "2026-02-03",
+    "avatar": "stone",
+    "lastAccess": "2026-02-03"
+  },
+  {
+    "id": "admin-003",
+    "name": "Elena Cho",
+    "email": "elena.cho@ghostload.com",
+    "role": "ADMIN",
+    "status": "Invited",
+    "createdAt": "2026-06-20",
+    "avatar": "wood",
+    "lastAccess": "2026-06-20"
+  }
+]

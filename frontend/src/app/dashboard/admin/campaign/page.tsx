@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 
@@ -9,7 +9,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export default function AdminCampaignPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, accessToken } = useAuthStore();
   const [hasMounted, setHasMounted] = useState(false);
   const [name, setName] = useState("");
@@ -43,11 +42,15 @@ export default function AdminCampaignPage() {
       return;
     }
 
-    const paramId = searchParams?.get("contactImportId");
+    let paramId: string | null = null;
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      paramId = sp.get("contactImportId");
+    }
     if (paramId) {
       setContactImportId(paramId);
     }
-  }, [isAuthenticated, router, searchParams]);
+  }, [isAuthenticated, router]);
 
   if (!hasMounted || !isAuthenticated) {
     return null;

@@ -5,6 +5,7 @@ import com.ghostload.api.outreach.application.port.in.CreateCampaignResult;
 import com.ghostload.api.outreach.application.port.in.CreateCampaignUseCase;
 import com.ghostload.api.outreach.application.port.in.SendCampaignResult;
 import com.ghostload.api.outreach.application.port.in.SendCampaignUseCase;
+import com.ghostload.api.outreach.application.port.in.ListCampaignsUseCase;
 import com.ghostload.api.outreach.domain.model.CampaignStatus;
 import com.ghostload.api.shared.adapter.in.web.GlobalExceptionHandler;
 import org.junit.jupiter.api.Test;
@@ -13,10 +14,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -48,6 +51,7 @@ class CampaignControllerTest {
                         command -> {
                             throw new AssertionError("No debe enviarse la campaña.");
                         },
+                        query -> List.of(),
                         new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -87,6 +91,7 @@ class CampaignControllerTest {
                         command -> {
                             throw new AssertionError("No debe enviarse la campaña.");
                         },
+                        query -> List.of(),
                         new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -123,6 +128,7 @@ class CampaignControllerTest {
                     throw new AssertionError("No debe crearse una campaña.");
                 },
                 sendUseCase,
+                query -> List.of(),
                 new CampaignWebMapper());
         MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
@@ -135,5 +141,95 @@ class CampaignControllerTest {
                 .andExpect(jsonPath("$.id").value(campaignId.toString()))
                 .andExpect(jsonPath("$.status").value("SENDING"))
                 .andExpect(jsonPath("$.recipientCount").value(2));
+    }
+
+    @Test
+    void shouldListCampaignsFilteredByStatus() throws Exception {
+        UUID campaignId = UUID.fromString("0f04b111-7131-49f4-9fb7-9a04705e2309");
+        Instant createdAt = Instant.parse("2026-08-07T16:00:00Z");
+        AtomicReference<ListCampaignsUseCase.ListCampaignsQuery> receivedQuery =
+                new AtomicReference<>();
+        ListCampaignsUseCase listUseCase = query -> {
+            receivedQuery.set(query);
+            return List.of(new ListCampaignsUseCase.CampaignSummary(
+                    campaignId,
+                    "Campaña agosto",
+                    CampaignStatus.READY,
+                    45,
+                    createdAt));
+        };
+        CampaignController controller = new CampaignController(
+                command -> {
+                    throw new AssertionError("No debe crearse una campaña.");
+                },
+                command -> {
+                    throw new AssertionError("No debe enviarse una campaña.");
+                },
+                listUseCase,
+                new CampaignWebMapper());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        mockMvc.perform(get("/api/v1/admin/campaigns")
+                        .queryParam("status", "ready"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(campaignId.toString()))
+                .andExpect(jsonPath("$[0].name").value("Campaña agosto"))
+                .andExpect(jsonPath("$[0].status").value("READY"))
+                .andExpect(jsonPath("$[0].recipientCount").value(45));
+
+        assertThat(receivedQuery.get().status()).isEqualTo(CampaignStatus.READY);
+    }
+
+    @Test
+    void shouldRejectUnknownCampaignStatus() throws Exception {
+        CampaignController controller = new CampaignController(
+                command -> {
+                    throw new AssertionError("No debe crearse una campaña.");
+                },
+                command -> {
+                    throw new AssertionError("No debe enviarse una campaña.");
+                },
+                query -> {
+                    throw new AssertionError("No debe listarse con un estado inválido.");
+                },
+                new CampaignWebMapper());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        mockMvc.perform(get("/api/v1/admin/campaigns")
+                        .queryParam("status", "UNKNOWN"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_REQUEST"));
+    }
+
+    @Test
+    void shouldReturnAllCampaignsWhenStatusIsMissing() throws Exception {
+        AtomicReference<ListCampaignsUseCase.ListCampaignsQuery> receivedQuery =
+                new AtomicReference<>();
+        CampaignController controller = new CampaignController(
+                command -> {
+                    throw new AssertionError("No debe crearse una campaña.");
+                },
+                command -> {
+                    throw new AssertionError("No debe enviarse una campaña.");
+                },
+                query -> {
+                    receivedQuery.set(query);
+                    return List.of();
+                },
+                new CampaignWebMapper());
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        mockMvc.perform(get("/api/v1/admin/campaigns"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty());
+
+        assertThat(receivedQuery.get().status()).isNull();
     }
 }

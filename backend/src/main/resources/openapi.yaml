@@ -422,6 +422,29 @@ paths:
           $ref: '#/components/responses/InternalError'
 
   /api/v1/admin/contact-imports:
+    get:
+      tags: [Admin Contacts]
+      summary: Listar importaciones utilizables para crear campañas
+      operationId: listContactImports
+      description: |
+        Devuelve las importaciones COMPLETED que contienen al menos un contacto
+        válido, ordenadas desde la más reciente. La respuesta permite seleccionar
+        el contactImportId al crear una campaña.
+      security:
+        - adminBearer: []
+      responses:
+        '200':
+          description: Importaciones utilizables
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContactImportSummaryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalError'
     post:
       tags: [Admin Contacts]
       summary: Importar contactos desde CSV
@@ -563,19 +586,22 @@ paths:
       security:
         - adminBearer: []
       parameters:
-        - $ref: '#/components/parameters/Page'
-        - $ref: '#/components/parameters/Size'
         - name: status
           in: query
+          required: false
           schema:
             $ref: '#/components/schemas/CampaignStatus'
       responses:
         '200':
-          description: Página de campañas
+          description: Campañas ordenadas desde la más reciente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CampaignPageResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/CampaignSummaryResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '500':
@@ -1407,6 +1433,22 @@ components:
           type: string
           format: date-time
 
+    ContactImportSummaryResponse:
+      type: object
+      required: [importId, name, validContacts, createdAt]
+      properties:
+        importId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        validContacts:
+          type: integer
+          minimum: 1
+        createdAt:
+          type: string
+          format: date-time
+
     ImportIssue:
       type: object
       required: [row, code, message]
@@ -1541,6 +1583,24 @@ components:
         sentAt:
           type: [string, 'null']
           format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    CampaignSummaryResponse:
+      type: object
+      required: [id, name, status, recipientCount, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/CampaignStatus'
+        recipientCount:
+          type: integer
+          minimum: 1
         createdAt:
           type: string
           format: date-time

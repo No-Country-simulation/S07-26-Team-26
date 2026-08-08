@@ -1,10 +1,19 @@
 package com.ghostload.api.outreach.adapter.in.web;
 
 import com.ghostload.api.outreach.application.port.in.ImportContactsResult;
+import com.ghostload.api.outreach.application.port.in.ListContactImportsUseCase.ContactImportSummary;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ContactImportWebMapper {
+
+    ContactImportSummaryResponse toResponse(ContactImportSummary summary) {
+        return new ContactImportSummaryResponse(
+                summary.importId(),
+                summary.name(),
+                summary.validContacts(),
+                summary.createdAt());
+    }
 
     ContactImportResponse toResponse(ImportContactsResult result) {
         return new ContactImportResponse(

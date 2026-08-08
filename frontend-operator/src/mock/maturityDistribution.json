@@ -1,0 +1,7 @@
+[
+  { "level": "Critical",          "count": 312,  "range": "0-20" },
+  { "level": "Operational Risk",  "count": 588,  "range": "21-40" },
+  { "level": "Growing",           "count": 741,  "range": "41-60" },
+  { "level": "Mature",            "count": 604,  "range": "61-80" },
+  { "level": "Leader",            "count": 255,  "range": "81-100" }
+]

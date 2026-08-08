@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * Design tokens for Project Ghost Load — Minecraft-inspired visual pass.
+ *
+ * Ported from ghost-load-frontend's tailwind.config.ts (Tailwind v3) into
+ * Tailwind v4's CSS-based theme, since this project's frontend runs on
+ * Tailwind v4. Token NAMES are unchanged so every migrated component (which
+ * already references these classes) works without edits.
+ *
+ * forest   -> "grass" green (primary)
+ * gold     -> gold ore / gold ingot (accent, used sparingly)
+ * graphite -> "stone" gray (neutral surfaces/text)
+ * wood     -> warm brown scale for secondary borders/accents
+ * ------------------------------------------------------------------------ */
+@theme {
+  --color-forest-950: #14210B; /* deep underground green-black */
+  --color-forest-900: #1F3512;
+  --color-forest-800: #2E4A1A;
+  --color-forest-700: #3F6023; /* primary -- grass-block shadow green */
+  --color-forest-600: #5D8A3A; /* grass-block top green */
+  --color-forest-500: #7FAE55;
+  --color-forest-100: #E4EEDB;
+  --color-forest-50: #F4F8EF;
+
+  --color-gold-700: #8B6914; /* gold ore, deep */
+  --color-gold-600: #B8860B;
+  --color-gold-500: #D4A017; /* accent -- gold ingot */
+  --color-gold-400: #E8C34A;
+  --color-gold-100: #FBF0D1;
+  --color-gold-50: #FDF8EC;
+
+  --color-graphite-950: #1C1C1C; /* bedrock */
+  --color-graphite-900: #2B2B2B;
+  --color-graphite-800: #3A3A3A;
+  --color-graphite-700: #4A4A4A;
+  --color-graphite-600: #5C5C5C;
+  --color-graphite-400: #8A8A8A; /* stone gray */
+  --color-graphite-200: #C6C6C6; /* classic inventory-panel gray */
+  --color-graphite-100: #DCDCDC;
+  --color-graphite-50: #F4F2ED; /* warm off-white, like birch plank */
+
+  --color-wood-700: #5A3A1E; /* dark oak */
+  --color-wood-600: #6B4226;
+  --color-wood-500: #8B5A2B; /* oak plank */
+  --color-wood-400: #A9713A;
+  --color-wood-100: #EDDFC9;
+  --color-wood-50: #F7F1E6;
+
+  --shadow-panel: 0 1px 2px rgba(20, 33, 11, 0.05), 0 1px 0 rgba(20, 33, 11, 0.04);
+  --shadow-card: 0 1px 3px rgba(20, 33, 11, 0.08), 0 8px 24px -12px rgba(20, 33, 11, 0.14);
+  --shadow-elevated: 0 4px 12px rgba(20, 33, 11, 0.08), 0 16px 40px -16px rgba(20, 33, 11, 0.2);
+  /* Classic beveled inventory-panel look: light highlight top-left, dark
+     shadow bottom-right, like Minecraft's own GUI chrome. */
+  --shadow-bevel: inset 2px 2px 0 rgba(255, 255, 255, 0.55), inset -2px -2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-bevel-sm: inset 1px 1px 0 rgba(255, 255, 255, 0.5), inset -1px -1px 0 rgba(0, 0, 0, 0.22);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+}
+
+/* Font families reference the CSS variables next/font sets on <html> in
+   layout.tsx (--font-display, --font-sans, --font-mono, --font-pixel).
+   `inline` tells Tailwind to substitute the var() directly into each
+   generated utility instead of re-declaring the custom property, avoiding
+   a name collision with next/font's own declaration -- same pattern
+   Project A's original starter used for --font-geist-sans/mono. */
+@theme inline {
+  --font-display: var(--font-display), sans-serif;
+  --font-pixel: var(--font-pixel), monospace;
+  --font-sans: var(--font-sans), sans-serif;
+  --font-mono: var(--font-mono), monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply text-graphite-900 antialiased;
+    background-color: #F4F2ED;
+  }
+
+  ::selection {
+    @apply bg-gold-100 text-forest-900;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #3F6023;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .grid-noise {
+    background-image:
+      linear-gradient(to right, rgba(20, 33, 11, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20, 33, 11, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  /* Very subtle speckle -- reads as "stone" at a glance, never interferes
+     with text. Use only on hero/decorative panels, never on data-dense
+     cards (tables, KPI grids). */
+  .stone-texture {
+    background-image: radial-gradient(rgba(20, 33, 11, 0.035) 1px, transparent 1px);
+    background-size: 10px 10px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Print / "Descargar PDF" support.
+ *
+ * The operator PDF page renders the institutional report inline and calls
+ * window.print() -- browsers turn that into a real, savable PDF via their
+ * native print dialog. Everything outside the report itself (topbar, step
+ * nav, action buttons) is marked `print:hidden` in its component so only
+ * the branded document is captured. This block just tunes the physical
+ * page so the export doesn't inherit the browser's default print margins.
+ * ------------------------------------------------------------------------ */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+
+  html,
+  body {
+    background: #fff;
+  }
+}

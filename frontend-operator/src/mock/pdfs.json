@@ -1,8 +1,0 @@
-[
-  { "companyId": "c-001", "companyName": "Aetheris Infrastructure", "generatedAt": "2026-04-02", "score": 85, "maturityLevel": "Leader" },
-  { "companyId": "c-002", "companyName": "Northlake Data Systems", "generatedAt": "2026-03-20", "score": 71, "maturityLevel": "Mature" },
-  { "companyId": "c-003", "companyName": "Solvane AI Labs", "generatedAt": "2026-02-10", "score": 63, "maturityLevel": "Growing" },
-  { "companyId": "c-005", "companyName": "Redshift Cloud Partners", "generatedAt": "2026-04-25", "score": 41, "maturityLevel": "Operational Risk" },
-  { "companyId": "c-006", "companyName": "Kestrel Data Partners", "generatedAt": "2026-06-15", "score": 27, "maturityLevel": "Critical" },
-  { "companyId": "c-008", "companyName": "Fionnbharr Compute Co.", "generatedAt": "2026-03-08", "score": 78, "maturityLevel": "Mature" }
-]

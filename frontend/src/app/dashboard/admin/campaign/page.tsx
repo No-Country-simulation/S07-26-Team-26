@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 
@@ -9,14 +9,17 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export default function AdminCampaignPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, accessToken } = useAuthStore();
-  const [hasMounted, setHasMounted] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [callToActionText, setCallToActionText] = useState("Abrir invitación");
-  const [contactImportId, setContactImportId] = useState("");
+  const [contactImportId, setContactImportId] = useState(() => {
+    const id = searchParams.get("contactImportId");
+    return id ?? "";
+  });
   const [scheduledAt, setScheduledAt] = useState(() => {
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
@@ -33,26 +36,12 @@ export default function AdminCampaignPage() {
   const [modalIsError, setModalIsError] = useState(false);
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login");
-      return;
-    }
-
-    let paramId: string | null = null;
-    if (typeof window !== "undefined") {
-      const sp = new URLSearchParams(window.location.search);
-      paramId = sp.get("contactImportId");
-    }
-    if (paramId) {
-      setContactImportId(paramId);
     }
   }, [isAuthenticated, router]);
 
-  if (!hasMounted || !isAuthenticated) {
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -141,8 +130,13 @@ export default function AdminCampaignPage() {
           const payload = JSON.parse(text);
           errorDetail = payload?.message || payload?.error || null;
           if (Array.isArray(payload?.fields)) {
-            fieldErrors = payload.fields.map(
-              (field: any) => `${field.field}: ${field.message}`,
+            const fields = payload.fields as Array<{
+              field?: string;
+              message?: string;
+            }>;
+            fieldErrors = fields.map(
+              (field) =>
+                `${field.field ?? "field"}: ${field.message ?? "error"}`,
             );
           }
         } catch {

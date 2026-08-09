@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Sora, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/providers/QueryProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const sora = Sora({
+  variable: "--font-sora",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Enterprise Hub - Next.js, Zustand & React Query",
-  description: "A premium enterprise dashboard starter kit incorporating Zustand for global state management and TanStack Query for data fetching.",
+  title: "GHOST LOAD - Inteligencia de Infraestructura",
+  description: "Identifique capacidad ociosa y optimice el ROI a través de benchmarking. Análisis técnico preciso para infraestructuras de misión crítica.",
 };
 
 export default function RootLayout({
@@ -24,12 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es" className="light">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white`}
+        className={`${sora.variable} ${jetbrainsMono.variable} ${inter.variable} antialiased min-h-screen bg-[#fbf9f8] text-[#1b1c1c] selection:bg-[#00fabe] selection:text-[#002116]`}
       >
         <QueryProvider>{children}</QueryProvider>
       </body>
     </html>
   );
 }
+

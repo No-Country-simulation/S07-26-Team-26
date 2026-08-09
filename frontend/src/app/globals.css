@@ -1,19 +1,58 @@
 @import "tailwindcss";
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
-  --background: #020617;
-  --foreground: #f8fafc;
+  --background: #fbf9f8;
+  --foreground: #1b1c1c;
+  --font-sora: 'Sora', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-jetbrains-mono: 'JetBrains Mono', monospace;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display-lg: var(--font-sora);
+  --font-body-md: var(--font-inter);
+  --font-technical-label: var(--font-jetbrains-mono);
+  --font-technical-data-lg: var(--font-jetbrains-mono);
 }
 
 body {
-  background: var(--background);
+  background-color: #fbf9f8;
+  background-image: 
+    linear-gradient(#e4e2e2 1px, transparent 1px),
+    linear-gradient(90deg, #e4e2e2 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: -1px -1px;
   color: var(--foreground);
-  font-family: var(--font-sans);
 }
+
+.blueprint-container {
+  border-left: 1px solid #e4e2e2;
+  border-right: 1px solid #e4e2e2;
+  background-color: #fbf9f8;
+  min-height: 100vh;
+}
+
+.section-divider {
+  border-bottom: 1px solid #e4e2e2;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+

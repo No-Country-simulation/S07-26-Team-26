@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 
@@ -9,17 +9,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
 export default function AdminCampaignPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, accessToken } = useAuthStore();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [callToActionText, setCallToActionText] = useState("Abrir invitación");
-  const [contactImportId, setContactImportId] = useState(() => {
-    const id = searchParams.get("contactImportId");
-    return id ?? "";
-  });
+  const [contactImportId, setContactImportId] = useState("");
   const [scheduledAt, setScheduledAt] = useState(() => {
     const now = new Date();
     const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
@@ -40,6 +36,16 @@ export default function AdminCampaignPage() {
       router.replace("/login");
     }
   }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const paramId = new URLSearchParams(window.location.search).get(
+      "contactImportId",
+    );
+    if (paramId) {
+      setContactImportId(paramId);
+    }
+  }, []);
 
   if (!isAuthenticated) {
     return null;

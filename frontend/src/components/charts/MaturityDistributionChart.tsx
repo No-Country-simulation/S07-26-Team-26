@@ -5,12 +5,15 @@ import {
   BarChart,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Cell,
-} from "recharts";
-
+        <Tooltip
+          contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E7ECE9" }}
+          // Accept any argument signature to satisfy Recharts' overloaded types;
+          // safely read the first argument which is the value.
+          formatter={(...args: any[]) => {
+            const value = args[0] as number | string | undefined;
+            return `${value ?? 0} companies`;
+          }}
+        />
 interface Datum {
   level: string;
   count: number;

@@ -19,8 +19,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "GHOST LOAD - Inteligencia de Infraestructura",
-  description: "Identifique capacidad ociosa y optimice el ROI a través de benchmarking. Análisis técnico preciso para infraestructuras de misión crítica.",
+  title: "Ghost Load | Eficiencia para data centers",
+  description:
+    "Detecta capacidad inactiva, mide el desperdicio energético y descubre cómo aprovechar mejor tu infraestructura.",
 };
 
 export default function RootLayout({
@@ -44,4 +45,3 @@ export default function RootLayout({
     </html>
   );
 }
-

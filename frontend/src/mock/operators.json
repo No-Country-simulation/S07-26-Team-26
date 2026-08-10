@@ -1,0 +1,82 @@
+[
+  {
+    "id": "op-001",
+    "name": "Operator",
+    "email": "operator@aetheris.com",
+    "companyId": "c-001",
+    "status": "Active",
+    "createdAt": "2026-02-11",
+    "avatar": "grass",
+    "lastAccess": "2026-02-11"
+  },
+  {
+    "id": "op-002",
+    "name": "Operator",
+    "email": "operator@northlake.io",
+    "companyId": "c-002",
+    "status": "Active",
+    "createdAt": "2026-03-02",
+    "avatar": "stone",
+    "lastAccess": "2026-03-02"
+  },
+  {
+    "id": "op-003",
+    "name": "Operator",
+    "email": "ops@solvane.ai",
+    "companyId": "c-003",
+    "status": "Active",
+    "createdAt": "2026-01-22",
+    "avatar": "wood",
+    "lastAccess": "2026-01-22"
+  },
+  {
+    "id": "op-004",
+    "name": "Operator",
+    "email": "operator@vantageco.com",
+    "companyId": "c-004",
+    "status": "Active",
+    "createdAt": "2026-05-14",
+    "avatar": "gold",
+    "lastAccess": "2026-05-14"
+  },
+  {
+    "id": "op-005",
+    "name": "Operator",
+    "email": "operator@redshiftcp.com",
+    "companyId": "c-005",
+    "status": "Active",
+    "createdAt": "2026-04-09",
+    "avatar": "grass",
+    "lastAccess": "2026-04-09"
+  },
+  {
+    "id": "op-006",
+    "name": "Operator",
+    "email": "operator@kestreldp.com",
+    "companyId": "c-006",
+    "status": "Active",
+    "createdAt": "2026-06-01",
+    "avatar": "stone",
+    "lastAccess": "2026-06-01"
+  },
+  {
+    "id": "op-007",
+    "name": "Operator",
+    "email": "operator@ironmeridian.com",
+    "companyId": "c-007",
+    "status": "Invited",
+    "createdAt": "2026-07-02",
+    "avatar": "wood",
+    "lastAccess": "2026-07-02"
+  },
+  {
+    "id": "op-008",
+    "name": "Operator",
+    "email": "operator@fionnbharr.ie",
+    "companyId": "c-008",
+    "status": "Active",
+    "createdAt": "2026-02-27",
+    "avatar": "gold",
+    "lastAccess": "2026-02-27"
+  }
+]

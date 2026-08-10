@@ -50,11 +50,13 @@ export function MaturityDistributionChart({ data }: { data: Datum[] }) {
             borderRadius: 6,
             borderColor: "#E7ECE9",
           }}
-          // Recharts' TS types are strict here; return a simple formatted string
-          // instead of a tuple to satisfy the expected return types.
-          formatter={(value: number | string | undefined) =>
-            `${value ?? 0} companies`
-          }
+          // Accept any incoming value (Recharts may pass arrays or undefined)
+          // and coerce to a readable string. Use `any` to satisfy overloaded
+          // TS signatures from Recharts' Formatter type.
+          formatter={(value: any) => {
+            const v = Array.isArray(value) ? value[0] : value;
+            return `${v ?? 0} companies`;
+          }}
         />
         <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={48}>
           {data.map((d) => (

@@ -1,6 +1,15 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Cell } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Cell,
+} from "recharts";
 
 interface Datum {
   level: string;
@@ -20,13 +29,33 @@ export function MaturityDistributionChart({ data }: { data: Datum[] }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E7ECE9" vertical={false} />
-        <XAxis dataKey="level" tick={{ fontSize: 11, fill: "#6B7A73" }} axisLine={{ stroke: "#C7D0CC" }} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: "#6B7A73" }} axisLine={false} tickLine={false} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#E7ECE9"
+          vertical={false}
+        />
+        <XAxis
+          dataKey="level"
+          tick={{ fontSize: 11, fill: "#6B7A73" }}
+          axisLine={{ stroke: "#C7D0CC" }}
+          tickLine={false}
+        />
+        <YAxis
+          tick={{ fontSize: 11, fill: "#6B7A73" }}
+          axisLine={false}
+          tickLine={false}
+        />
         <Tooltip
-          contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E7ECE9" }}
-          // Recharts may pass `undefined` or non-number types here; coerce safely.
-          formatter={(value: number | string | undefined) => [`${value ?? 0} companies`, "Count"]}
+          contentStyle={{
+            fontSize: 12,
+            borderRadius: 6,
+            borderColor: "#E7ECE9",
+          }}
+          // Recharts' TS types are strict here; return a simple formatted string
+          // instead of a tuple to satisfy the expected return types.
+          formatter={(value: number | string | undefined) =>
+            `${value ?? 0} companies`
+          }
         />
         <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={48}>
           {data.map((d) => (

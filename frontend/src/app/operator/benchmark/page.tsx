@@ -40,7 +40,7 @@ export default function OperatorBenchmarkPage() {
   useEffect(() => {
     // If there are unanswered questions, navigate to the first unanswered one.
     const firstUnanswered = questions.findIndex(
-      (q) => answers[q.id] === undefined || answers[q.id] === ""
+      (q) => answers[q.id] === undefined || answers[q.id] === "",
     );
     if (firstUnanswered !== -1) {
       goTo(firstUnanswered);
@@ -67,7 +67,7 @@ export default function OperatorBenchmarkPage() {
   const groupStart = groupIndex * 5;
   const groupQuestions = questions.slice(groupStart, groupStart + 5);
   const groupAnswered = groupQuestions.every(
-    (q) => answers[q.id] !== undefined && answers[q.id] !== ""
+    (q) => answers[q.id] !== undefined && answers[q.id] !== "",
   );
   const isLastGroup = groupIndex === groupsCount - 1;
 
@@ -125,7 +125,11 @@ export default function OperatorBenchmarkPage() {
           ))}
 
           <div className="mt-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={handlePrevGroup} disabled={groupIndex === 0}>
+            <Button
+              variant="ghost"
+              onClick={handlePrevGroup}
+              disabled={groupIndex === 0}
+            >
               <ArrowLeft className="h-4 w-4" />
               Prev
             </Button>
@@ -134,7 +138,11 @@ export default function OperatorBenchmarkPage() {
               Step {groupIndex + 1} of {groupsCount}
             </div>
 
-            <Button onClick={handleNextGroup} disabled={!groupAnswered} loading={submitMutation.isPending}>
+            <Button
+              onClick={handleNextGroup}
+              disabled={!groupAnswered}
+              loading={submitMutation.isPending}
+            >
               {isLastGroup ? (
                 <>
                   <PixelMail size={16} />

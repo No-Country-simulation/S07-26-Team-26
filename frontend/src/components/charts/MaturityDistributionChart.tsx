@@ -25,7 +25,8 @@ export function MaturityDistributionChart({ data }: { data: Datum[] }) {
         <YAxis tick={{ fontSize: 11, fill: "#6B7A73" }} axisLine={false} tickLine={false} />
         <Tooltip
           contentStyle={{ fontSize: 12, borderRadius: 6, borderColor: "#E7ECE9" }}
-          formatter={(value: number) => [`${value} companies`, "Count"]}
+          // Recharts may pass `undefined` or non-number types here; coerce safely.
+          formatter={(value: number | string | undefined) => [`${value ?? 0} companies`, "Count"]}
         />
         <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={48}>
           {data.map((d) => (

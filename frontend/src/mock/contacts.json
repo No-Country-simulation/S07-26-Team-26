@@ -1,0 +1,51 @@
+[
+  {
+    "id": "ct-001",
+    "name": "Registered Operator",
+    "email": "moraketty16@company-example.com",
+    "company": "TECHsolutions",
+    "status": "started",
+    "valid": true
+  },
+  {
+    "id": "ct-002",
+    "name": "Registered Operator",
+    "email": "operations@orion-manufacturing.example",
+    "company": "Orion Manufacturing Co.",
+    "status": "completed",
+    "valid": true
+  },
+  {
+    "id": "ct-003",
+    "name": "Registered Operator",
+    "email": "it@northfield-data.example",
+    "company": "Northfield Data Systems",
+    "status": "invited",
+    "valid": true
+  },
+  {
+    "id": "ct-004",
+    "name": "Registered Operator",
+    "email": "ops@meridian-cloud.example",
+    "company": "Meridian Cloud Partners",
+    "status": "started",
+    "valid": true
+  },
+  {
+    "id": "ct-005",
+    "name": "Registered Operator",
+    "email": "facilities@bluecrest.example",
+    "company": "Bluecrest Colocation",
+    "status": "invited",
+    "valid": true
+  },
+  {
+    "id": "ct-006",
+    "name": "Registered Operator",
+    "email": "not-an-email",
+    "company": "",
+    "status": "invited",
+    "valid": false,
+    "issue": "Invalid email format and missing company name"
+  }
+]

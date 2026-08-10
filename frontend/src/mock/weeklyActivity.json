@@ -1,0 +1,14 @@
+[
+  { "week": "Wk 1",  "benchmarksCompleted": 142, "avgScore": 58 },
+  { "week": "Wk 2",  "benchmarksCompleted": 168, "avgScore": 60 },
+  { "week": "Wk 3",  "benchmarksCompleted": 155, "avgScore": 59 },
+  { "week": "Wk 4",  "benchmarksCompleted": 201, "avgScore": 62 },
+  { "week": "Wk 5",  "benchmarksCompleted": 219, "avgScore": 63 },
+  { "week": "Wk 6",  "benchmarksCompleted": 187, "avgScore": 61 },
+  { "week": "Wk 7",  "benchmarksCompleted": 233, "avgScore": 65 },
+  { "week": "Wk 8",  "benchmarksCompleted": 260, "avgScore": 66 },
+  { "week": "Wk 9",  "benchmarksCompleted": 244, "avgScore": 64 },
+  { "week": "Wk 10", "benchmarksCompleted": 278, "avgScore": 67 },
+  { "week": "Wk 11", "benchmarksCompleted": 291, "avgScore": 68 },
+  { "week": "Wk 12", "benchmarksCompleted": 305, "avgScore": 69 }
+]

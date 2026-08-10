@@ -1,0 +1,247 @@
+{
+  "categories": [
+    { "id": "energy", "label": "Energy Efficiency" },
+    { "id": "gpu", "label": "GPU Utilization" },
+    { "id": "cooling", "label": "Cooling" },
+    { "id": "operations", "label": "Operations" },
+    { "id": "capacity", "label": "Capacity" }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "category": "energy",
+      "order": 1,
+      "text": "Do you measure electrical consumption per rack or per cluster?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q2",
+      "category": "energy",
+      "order": 2,
+      "text": "What percentage of installed electrical capacity is currently used?",
+      "type": "numeric",
+      "unit": "%",
+      "min": 40,
+      "max": 98
+    },
+    {
+      "id": "q3",
+      "category": "energy",
+      "order": 3,
+      "text": "Do you know your power consumption per training run or per inference workload?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q4",
+      "category": "energy",
+      "order": 4,
+      "text": "Do you receive alerts for abnormal power consumption?",
+      "type": "select",
+      "options": [
+        { "value": "always", "label": "Always", "score": 100 },
+        { "value": "sometimes", "label": "Sometimes", "score": 50 },
+        { "value": "never", "label": "Never", "score": 0 }
+      ]
+    },
+    {
+      "id": "q5",
+      "category": "gpu",
+      "order": 5,
+      "text": "What is your average GPU utilization?",
+      "type": "numeric",
+      "unit": "%",
+      "min": 20,
+      "max": 100
+    },
+    {
+      "id": "q6",
+      "category": "gpu",
+      "order": 6,
+      "text": "Do GPUs sit idle waiting for data before they can process it?",
+      "type": "select",
+      "options": [
+        { "value": "never", "label": "Never", "score": 100 },
+        { "value": "rarely", "label": "Rarely", "score": 65 },
+        { "value": "frequently", "label": "Frequently", "score": 0 }
+      ]
+    },
+    {
+      "id": "q7",
+      "category": "gpu",
+      "order": 7,
+      "text": "Are idle GPUs held in reserve rather than reallocated?",
+      "type": "select",
+      "options": [
+        { "value": "never", "label": "Never", "score": 100 },
+        { "value": "sometimes", "label": "Sometimes", "score": 50 },
+        { "value": "frequently", "label": "Frequently", "score": 0 }
+      ]
+    },
+    {
+      "id": "q8",
+      "category": "gpu",
+      "order": 8,
+      "text": "Do you have real-time GPU monitoring?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q9",
+      "category": "cooling",
+      "order": 9,
+      "text": "Do you monitor rack-level temperature?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q10",
+      "category": "cooling",
+      "order": 10,
+      "text": "Does cooling capacity limit your ability to expand?",
+      "type": "select",
+      "options": [
+        { "value": "never", "label": "Never", "score": 100 },
+        { "value": "sometimes", "label": "Sometimes", "score": 50 },
+        { "value": "frequently", "label": "Frequently", "score": 0 }
+      ]
+    },
+    {
+      "id": "q11",
+      "category": "cooling",
+      "order": 11,
+      "text": "Do you experience overheating zones in your facility?",
+      "type": "select",
+      "options": [
+        { "value": "never", "label": "Never", "score": 100 },
+        { "value": "occasionally", "label": "Occasionally", "score": 50 },
+        { "value": "frequently", "label": "Frequently", "score": 0 }
+      ]
+    },
+    {
+      "id": "q12",
+      "category": "cooling",
+      "order": 12,
+      "text": "What is your primary cooling type?",
+      "type": "select",
+      "options": [
+        { "value": "air", "label": "Air", "score": 40 },
+        { "value": "liquid", "label": "Liquid", "score": 100 },
+        { "value": "hybrid", "label": "Hybrid", "score": 85 }
+      ]
+    },
+    {
+      "id": "q13",
+      "category": "operations",
+      "order": 13,
+      "text": "Do Facilities and Operations teams share the same metrics?",
+      "type": "select",
+      "options": [
+        { "value": "always", "label": "Always", "score": 100 },
+        { "value": "sometimes", "label": "Sometimes", "score": 50 },
+        { "value": "never", "label": "Never", "score": 0 }
+      ]
+    },
+    {
+      "id": "q14",
+      "category": "operations",
+      "order": 14,
+      "text": "Is resource allocation automated?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q15",
+      "category": "operations",
+      "order": 15,
+      "text": "How often do you run efficiency assessments?",
+      "type": "select",
+      "options": [
+        { "value": "monthly", "label": "Monthly", "score": 100 },
+        { "value": "quarterly", "label": "Quarterly", "score": 60 },
+        { "value": "never", "label": "Never", "score": 0 }
+      ]
+    },
+    {
+      "id": "q16",
+      "category": "operations",
+      "order": 16,
+      "text": "Do you have unified dashboards across facilities and IT?",
+      "type": "select",
+      "options": [
+        { "value": "yes", "label": "Yes", "score": 100 },
+        { "value": "partially", "label": "Partially", "score": 50 },
+        { "value": "no", "label": "No", "score": 0 }
+      ]
+    },
+    {
+      "id": "q17",
+      "category": "capacity",
+      "order": 17,
+      "text": "What percentage of available infrastructure is allocated to AI workloads?",
+      "type": "numeric",
+      "unit": "%",
+      "min": 30,
+      "max": 100
+    },
+    {
+      "id": "q18",
+      "category": "capacity",
+      "order": 18,
+      "text": "How often do you reject or delay workload requests due to lack of capacity?",
+      "type": "select",
+      "options": [
+        { "value": "never", "label": "Never", "score": 100 },
+        { "value": "monthly", "label": "Monthly", "score": 70 },
+        { "value": "weekly", "label": "Weekly", "score": 40 },
+        { "value": "daily", "label": "Daily", "score": 0 }
+      ]
+    },
+    {
+      "id": "q19",
+      "category": "capacity",
+      "order": 19,
+      "text": "How long does it take to deploy new infrastructure once approved?",
+      "type": "select",
+      "options": [
+        { "value": "1-3", "label": "1-3 months", "score": 100 },
+        { "value": "3-6", "label": "3-6 months", "score": 70 },
+        { "value": "6-12", "label": "6-12 months", "score": 40 },
+        { "value": "12+", "label": "More than 12 months", "score": 10 }
+      ]
+    },
+    {
+      "id": "q20",
+      "category": "capacity",
+      "order": 20,
+      "text": "Do you run growth simulations to plan future capacity?",
+      "type": "select",
+      "options": [
+        { "value": "always", "label": "Always", "score": 100 },
+        { "value": "sometimes", "label": "Sometimes", "score": 50 },
+        { "value": "never", "label": "Never", "score": 0 }
+      ]
+    }
+  ]
+}

@@ -4,9 +4,14 @@ html {
   scroll-behavior: smooth;
 }
 
+:focus-visible {
+  outline: 3px solid #24563c;
+  outline-offset: 3px;
+}
+
 :root {
-  --background: #fbf9f8;
-  --foreground: #1b1c1c;
+  --background: #f7faf8;
+  --foreground: #163236;
   --font-sora: 'Sora', sans-serif;
   --font-inter: 'Inter', sans-serif;
   --font-jetbrains-mono: 'JetBrains Mono', monospace;
@@ -22,24 +27,24 @@ html {
 }
 
 body {
-  background-color: #fbf9f8;
+  background-color: #f7faf8;
   background-image: 
-    linear-gradient(#e4e2e2 1px, transparent 1px),
-    linear-gradient(90deg, #e4e2e2 1px, transparent 1px);
+    linear-gradient(#d9e6e7 1px, transparent 1px),
+    linear-gradient(90deg, #d9e6e7 1px, transparent 1px);
   background-size: 64px 64px;
   background-position: -1px -1px;
   color: var(--foreground);
 }
 
 .blueprint-container {
-  border-left: 1px solid #e4e2e2;
-  border-right: 1px solid #e4e2e2;
-  background-color: #fbf9f8;
+  border-left: 1px solid #d9e6e7;
+  border-right: 1px solid #d9e6e7;
+  background-color: #f7faf8;
   min-height: 100vh;
 }
 
 .section-divider {
-  border-bottom: 1px solid #e4e2e2;
+  border-bottom: 1px solid #d9e6e7;
 }
 
 @keyframes float {
@@ -55,4 +60,12 @@ body {
   animation: float 5s ease-in-out infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 
+  .animate-float {
+    animation: none;
+  }
+}

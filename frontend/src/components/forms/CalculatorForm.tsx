@@ -22,13 +22,48 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const FIELDS: { name: keyof FormValues; label: string; suffix: string; placeholder: string }[] = [
-  { name: "installedCapacityKw", label: "Installed Electrical Capacity", suffix: "kW", placeholder: "18000" },
-  { name: "currentUtilizationPct", label: "Current Utilization", suffix: "%", placeholder: "72" },
-  { name: "gpuCount", label: "GPU Count", suffix: "units", placeholder: "4200" },
-  { name: "powerConsumptionKw", label: "Power Consumption", suffix: "kW", placeholder: "15400" },
-  { name: "coolingCapacityKw", label: "Cooling Capacity", suffix: "kW", placeholder: "19000" },
-  { name: "growthExpectationPct", label: "Growth Expectation (12mo)", suffix: "%", placeholder: "35" },
+const FIELDS: {
+  name: keyof FormValues;
+  label: string;
+  suffix: string;
+  placeholder: string;
+}[] = [
+  {
+    name: "installedCapacityKw",
+    label: "Installed Electrical Capacity",
+    suffix: "kW",
+    placeholder: "18000",
+  },
+  {
+    name: "currentUtilizationPct",
+    label: "Current Utilization",
+    suffix: "%",
+    placeholder: "72",
+  },
+  {
+    name: "gpuCount",
+    label: "GPU Count",
+    suffix: "units",
+    placeholder: "4200",
+  },
+  {
+    name: "powerConsumptionKw",
+    label: "Power Consumption",
+    suffix: "kW",
+    placeholder: "15400",
+  },
+  {
+    name: "coolingCapacityKw",
+    label: "Cooling Capacity",
+    suffix: "kW",
+    placeholder: "19000",
+  },
+  {
+    name: "growthExpectationPct",
+    label: "Growth Expectation (12mo)",
+    suffix: "%",
+    placeholder: "35",
+  },
 ];
 
 export function CalculatorForm() {
@@ -76,7 +111,10 @@ export function CalculatorForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="grid grid-cols-1 gap-5 sm:grid-cols-2"
+    >
       {FIELDS.map((field) => (
         <div key={field.name}>
           <Label htmlFor={field.name}>{field.label}</Label>
@@ -94,13 +132,19 @@ export function CalculatorForm() {
             </span>
           </div>
           {errors[field.name] && (
-            <p className="mt-1 text-xs text-red-600">{errors[field.name]?.message}</p>
+            <p className="mt-1 text-xs text-red-600">
+              {errors[field.name]?.message}
+            </p>
           )}
         </div>
       ))}
 
       <div className="sm:col-span-2">
-        <Button type="submit" className="w-full sm:w-auto" loading={isSubmitting || markCalculatorCompleted.isPending}>
+        <Button
+          type="submit"
+          className="w-full sm:w-auto"
+          loading={isSubmitting || markCalculatorCompleted.isPending}
+        >
           Calculate & Continue to Benchmark
         </Button>
       </div>

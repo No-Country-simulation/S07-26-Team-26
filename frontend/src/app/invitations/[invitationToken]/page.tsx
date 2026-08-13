@@ -38,7 +38,10 @@ export default function InvitationPage() {
   async function handleStart() {
     if (!invitation) return;
     setInvitation(invitation);
-    const evaluation = await startEvaluation.mutateAsync(invitationToken);
+    const evaluation = await startEvaluation.mutateAsync({
+      invitationToken,
+      invitation,
+    });
     setEvaluation(evaluation);
     router.push("/operator/calculator");
   }

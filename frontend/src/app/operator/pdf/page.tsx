@@ -29,6 +29,7 @@ import { useInvitationStore } from "@/store/invitationStore";
 import { useReportStatusPolling } from "@/hooks/useInvitation";
 import { useDashboardKpis } from "@/hooks/useDashboard";
 import { useCompanies } from "@/hooks/useCompanies";
+import { downloadReportPdfBlob, USE_MOCKS } from "@/services/api";
 import { maturityColor } from "@/lib/scoring";
 import { computePercentile } from "@/lib/insights";
 import { cn, formatNumber, formatDate } from "@/lib/utils";
@@ -74,12 +75,15 @@ export default function OperatorPdfPage() {
 
   const reportRef = buildReportReference(evaluationId, generatedAt);
 
-  function handleDownload() {
-    // No real PDF service yet -- but this is no longer a screenshot of the
-    // whole app. The topbar, step nav, and every control on this page are
-    // marked `print:hidden`/removed at print time, so the browser's native
-    // "print to PDF" captures only the branded report card below: a real,
-    // standalone institutional document.
+  async function handleDownload() {
+    if (evaluationId && !USE_MOCKS) {
+      try {
+        await downloadReportPdfBlob(evaluationId);
+        return;
+      } catch (err) {
+        console.error("Falló la descarga del PDF del backend, fallback a impresión", err);
+      }
+    }
     window.print();
   }
 

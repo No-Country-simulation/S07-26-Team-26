@@ -342,21 +342,19 @@ export async function generatePdfReport(companyId: string): Promise<{ ok: true; 
   }).then((r) => r.json());
 }
 
-// --- Operator invitation flow (no login — see docs/operator-flow) -----------
-//
-// Official backend flow:
-//   GET  /api/v1/invitations/{invitationToken}      -> InvitationDetails
-//   POST /api/v1/evaluations                        -> EvaluationSession
-//   GET  /api/v1/evaluations/{evaluationId}/report   -> ReportStatusResponse
-//
-// Mock mode fabricates plausible responses so the whole flow (including the
-// report-generation polling loop) can be demoed with zero backend.
+// --- Operator invitation flow (no login — see docs/11_Backend_API_Flow.md) -----------
+import { useInvitationStore } from "@/store/invitationStore";
+import { useCalculatorStore } from "@/store/calculatorStore";
 
 export interface InvitationDetails {
   invitationToken: string;
   operatorName: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   companyName: string;
   role: string;
+  position?: string;
   campaignName: string;
   estimatedMinutes: number;
 }
@@ -379,6 +377,22 @@ export async function fetchInvitation(invitationToken: string): Promise<Invitati
   return fetch(`${API_BASE_URL}/api/v1/invitations/${invitationToken}`).then((r) => {
     if (!r.ok) throw new Error("Invitation not found");
     return r.json();
+  }).then((data) => {
+    const firstName = data.firstName || "";
+    const lastName = data.lastName || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    return {
+      invitationToken: data.invitationToken || invitationToken,
+      operatorName: fullName || data.operatorName || "Operador",
+      firstName: data.firstName,
+      lastName: data.lastName,
+      email: data.email,
+      companyName: data.companyName || "Empresa",
+      role: data.position || data.role || "Operador TI",
+      position: data.position,
+      campaignName: data.campaignName || "Benchmark",
+      estimatedMinutes: data.estimatedMinutes || 12,
+    };
   });
 }
 
@@ -390,7 +404,12 @@ export interface EvaluationSession {
   status: EvaluationStatus;
 }
 
-export async function startEvaluation(invitationToken: string): Promise<EvaluationSession> {
+export async function startEvaluation(
+  input: string | { invitationToken: string; invitation?: InvitationDetails | null }
+): Promise<EvaluationSession> {
+  const invitationToken = typeof input === "string" ? input : input.invitationToken;
+  const invitation = typeof input === "string" ? null : input.invitation;
+
   if (USE_MOCKS) {
     return delay(
       {
@@ -401,30 +420,98 @@ export async function startEvaluation(invitationToken: string): Promise<Evaluati
       500
     );
   }
+
+  const body = {
+    firstName: invitation?.firstName || invitation?.operatorName?.split(" ")[0] || "Operador",
+    lastName: invitation?.lastName || invitation?.operatorName?.split(" ").slice(1).join(" ") || "Invitado",
+    email: invitation?.email || "operador@empresa.com",
+    companyName: invitation?.companyName || "Empresa",
+    position: invitation?.position || invitation?.role || "Gerente TI",
+    country: "Peru",
+    consentAccepted: true,
+    marketingConsent: false,
+    source: "OUTREACH",
+    invitationToken: invitationToken,
+  };
+
   return fetch(`${API_BASE_URL}/api/v1/evaluations`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ invitationToken }),
-  }).then((r) => r.json());
+    body: JSON.stringify(body),
+  }).then((r) => {
+    if (!r.ok) throw new Error("Error registrando la evaluación");
+    return r.json();
+  }).then((data) => ({
+    evaluationId: data.evaluationId,
+    evaluationToken: data.evaluationToken,
+    status: (data.state || data.status || "STARTED") as EvaluationStatus,
+  }));
 }
 
 export async function markCalculatorCompleted(evaluationId: string): Promise<{ status: EvaluationStatus }> {
   if (USE_MOCKS) return delay({ status: "CALCULATOR_COMPLETED" as const }, 300);
+
+  const evaluationToken = useInvitationStore.getState().evaluation?.evaluationToken ?? "";
+  const inputs = useCalculatorStore.getState().inputs;
+  const totalKw = inputs.installedCapacityKw || 10000;
+  const utilPct = inputs.currentUtilizationPct ?? 65;
+  const totalMw = totalKw / 1000.0;
+  const prodMw = (totalMw * utilPct) / 100.0;
+
+  const body = {
+    totalCapacityMw: totalMw > 0 ? totalMw : 10.0,
+    productiveCapacityMw: prodMw >= 0 ? prodMw : 6.5,
+    monthlyCostPerKw: 120.0,
+    currency: "USD",
+  };
+
   return fetch(`${API_BASE_URL}/api/v1/evaluations/${evaluationId}/calculator`, {
-    method: "POST",
-  }).then((r) => r.json());
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Evaluation-Token": evaluationToken,
+    },
+    body: JSON.stringify(body),
+  }).then((r) => {
+    if (!r.ok) throw new Error("Error al guardar datos de la calculadora");
+    return r.json();
+  }).then(() => ({ status: "CALCULATOR_COMPLETED" as const }));
 }
 
 export async function submitOperatorBenchmark(payload: {
   evaluationId: string;
-  answers: Record<string, string | number>;
+  answers: Record<string, string | number> | any[];
 }): Promise<{ status: EvaluationStatus }> {
   if (USE_MOCKS) return delay({ status: "BENCHMARK_COMPLETED" as const }, 500);
+
+  const evaluationToken = useInvitationStore.getState().evaluation?.evaluationToken ?? "";
+
+  let answerList: { questionId: string; value: number }[] = [];
+  if (Array.isArray(payload.answers)) {
+    answerList = payload.answers;
+  } else if (typeof payload.answers === "object" && payload.answers !== null) {
+    answerList = Object.entries(payload.answers).map(([questionId, val]) => ({
+      questionId,
+      value: Number(val) || 3,
+    }));
+  }
+
+  const body = {
+    questionnaireVersion: "v1",
+    answers: answerList,
+  };
+
   return fetch(`${API_BASE_URL}/api/v1/evaluations/${payload.evaluationId}/benchmark`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ answers: payload.answers }),
-  }).then((r) => r.json());
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Evaluation-Token": evaluationToken,
+    },
+    body: JSON.stringify(body),
+  }).then((r) => {
+    if (!r.ok) throw new Error("Error al enviar el benchmark");
+    return r.json();
+  }).then(() => ({ status: "BENCHMARK_COMPLETED" as const }));
 }
 
 export type ReportStatus = "NOT_REQUESTED" | "REPORT_GENERATING" | "REPORT_COMPLETED" | "REPORT_FAILED";
@@ -435,9 +522,6 @@ export interface ReportStatusResponse {
   excelUrl?: string;
 }
 
-// Mock mode simulates the async generation job: the first poll for a given
-// evaluationId kicks off "generation", and it resolves to COMPLETED after a
-// couple of polls -- so the loading screen has something real to show.
 const mockReportJobs = new Map<string, { startedAt: number }>();
 
 export async function fetchReportStatus(evaluationId: string): Promise<ReportStatusResponse> {
@@ -453,7 +537,53 @@ export async function fetchReportStatus(evaluationId: string): Promise<ReportSta
     }
     return delay({ status: "REPORT_COMPLETED", pdfUrl: "#mock-pdf", excelUrl: "#mock-excel" }, 300);
   }
-  return fetch(`${API_BASE_URL}/api/v1/evaluations/${evaluationId}/report`).then((r) => r.json());
+
+  const evaluationToken = useInvitationStore.getState().evaluation?.evaluationToken ?? "";
+
+  return fetch(`${API_BASE_URL}/api/v1/evaluations/${evaluationId}/report`, {
+    headers: {
+      "X-Evaluation-Token": evaluationToken,
+    },
+  }).then((r) => {
+    if (!r.ok) throw new Error("Error consultando el estado del reporte");
+    return r.json();
+  }).then((data) => {
+    let status: ReportStatus = "NOT_REQUESTED";
+    if (data.status === "REPORT_COMPLETED" || data.status === "GENERATED" || data.status === "COMPLETED") {
+      status = "REPORT_COMPLETED";
+    } else if (data.status === "REPORT_GENERATING" || data.status === "PROCESSING" || data.status === "GENERATING") {
+      status = "REPORT_GENERATING";
+    } else if (data.status === "REPORT_FAILED" || data.status === "FAILED") {
+      status = "REPORT_FAILED";
+    }
+
+    return {
+      status,
+      pdfUrl: data.downloadUrl || data.pdfUrl || `${API_BASE_URL}/api/v1/evaluations/${evaluationId}/report/download`,
+      excelUrl: data.excelUrl,
+    };
+  });
+}
+
+export async function downloadReportPdfBlob(evaluationId: string): Promise<void> {
+  const evaluationToken = useInvitationStore.getState().evaluation?.evaluationToken ?? "";
+  const response = await fetch(`${API_BASE_URL}/api/v1/evaluations/${evaluationId}/report/download`, {
+    headers: {
+      "X-Evaluation-Token": evaluationToken,
+    },
+  });
+  if (!response.ok) {
+    throw new Error("No se pudo descargar el PDF");
+  }
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `reporte-ghostload-${evaluationId.slice(0, 8)}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 // --- Contacts / CSV import --------------------------------------------------

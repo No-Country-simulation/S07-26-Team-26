@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import Link from "next/link";
 
-const API_URL = "https://ghost-load-api.trinitylabs.app";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 export default function AdminLoginPage() {
   const router = useRouter();

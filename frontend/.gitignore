@@ -13,6 +13,8 @@
 # testing
 /coverage
 
+usuarios_prueba.csv*
+
 # next.js
 /.next/
 /out/

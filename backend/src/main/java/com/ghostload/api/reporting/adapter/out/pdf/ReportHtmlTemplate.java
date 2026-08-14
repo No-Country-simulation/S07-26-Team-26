@@ -19,9 +19,8 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.Map;
 
-// Plantilla institucional del reporte en HTML/CSS. Colores de marca:
-// forest-green (#153c32) y gold (#d8b75b). El logo se lee de un archivo
-// configurado (PDF_LOGO_PATH) y, si no está, se usa un wordmark por CSS.
+// Plantilla institucional del reporte en HTML/CSS orientada a renderizado A4 (OpenHtmlToPdf).
+// Diseñada para presentar el resumen ejecutivo sin desbordamientos de página.
 final class ReportHtmlTemplate {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ReportHtmlTemplate.class);
@@ -58,136 +57,275 @@ final class ReportHtmlTemplate {
                 <head>
                   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
                   <style>
-                    @page { size: A4; margin: 0; }
+                    @page {
+                      size: A4 portrait;
+                      margin: 10mm 12mm 10mm 12mm;
+                    }
                     * { box-sizing: border-box; }
-                    body { margin:0; font-family: Arial, 'DejaVu Sans', sans-serif;
-                           font-size: 12px; color:#153c32; background:#f4f1e8; }
-                    .header { background:#153c32; padding:26px 40px 22px; color:#ffffff; }
-                    .tagline { color:#d8b75b; font-size:11px; letter-spacing:3px;
-                                text-transform:uppercase; margin-top:4px; }
-                    .content { padding:28px 40px 8px; }
-                    .card { background:#ffffff; border:1px solid #ddd6c5; border-radius:6px;
-                            padding:18px 22px; margin-bottom:18px; }
-                    .section-title { font-size:13px; font-weight:bold; color:#153c32;
-                                     text-transform:uppercase; letter-spacing:1px;
-                                     border-left:4px solid #d8b75b; padding-left:10px;
-                                     margin:0 0 14px; }
-                    .label { color:#66736e; font-size:11px; text-transform:uppercase; }
-                    .value { font-size:14px; font-weight:bold; color:#153c32; }
-                    .kpi-table { width:100%%; border-collapse:collapse; }
-                    .kpi-table td { padding:8px 12px; border:1px solid #eee8d8;
-                                    vertical-align:top; width:50%%; }
-                    .benchmark-head { width:100%%; border-collapse:collapse; }
-                    .score-box { background:#153c32; border-radius:6px; padding:16px;
-                                 text-align:center; width:38%%; vertical-align:middle; }
-                    .score-number { font-size:40px; font-weight:bold; color:#d8b75b; }
-                    .score-unit { font-size:11px; color:#cfded8; }
-                    .bench-detail { padding-left:20px; vertical-align:middle; }
-                    .maturity-badge { display:inline-block; background:#d8b75b; color:#153c32;
-                                      font-weight:bold; padding:4px 12px; border-radius:4px;
-                                      font-size:12px; }
-                    .module-row td { padding:7px 4px; vertical-align:middle; }
-                    .module-label { font-weight:bold; color:#153c32; width:42%%; }
-                    .module-value { text-align:right; color:#153c32; width:10%%; }
-                    .bar-track { background:#e9e3d3; border-radius:3px; height:10px; }
-                    .bar-fill { background:#d8b75b; height:10px; border-radius:3px; }
-                    .founder-box { background:#f6f3ea; border:1px solid #ddd6c5;
-                                   border-radius:6px; padding:16px 18px; }
-                    .cta { display:inline-block; background:#153c32; color:#d8b75b;
-                           font-weight:bold; text-decoration:none; padding:10px 18px;
-                           border-radius:4px; margin-top:10px; }
-                    .footer { padding:10px 40px 30px; font-size:9px; color:#8a948f; }
+                    body {
+                      margin: 0;
+                      padding: 0;
+                      font-family: Arial, 'DejaVu Sans', sans-serif;
+                      font-size: 11px;
+                      line-height: 1.35;
+                      color: #1a2420;
+                      background: #ffffff;
+                    }
+
+                    .header-table {
+                      width: 100%;
+                      background: #153c32;
+                      border-radius: 6px;
+                      padding: 14px 20px;
+                      color: #ffffff;
+                      margin-bottom: 12px;
+                    }
+                    .tagline {
+                      color: #d8b75b;
+                      font-size: 9px;
+                      letter-spacing: 2px;
+                      text-transform: uppercase;
+                      margin-top: 3px;
+                      font-weight: bold;
+                    }
+
+                    .card {
+                      background: #ffffff;
+                      border: 1px solid #e0d8c8;
+                      border-radius: 6px;
+                      padding: 12px 16px;
+                      margin-bottom: 10px;
+                      page-break-inside: avoid;
+                    }
+                    .section-title {
+                      font-size: 11px;
+                      font-weight: bold;
+                      color: #153c32;
+                      text-transform: uppercase;
+                      letter-spacing: 1px;
+                      border-left: 3.5px solid #d8b75b;
+                      padding-left: 8px;
+                      margin: 0 0 10px 0;
+                    }
+
+                    .two-col {
+                      width: 100%;
+                      border-collapse: collapse;
+                    }
+                    .two-col > tbody > tr > td {
+                      vertical-align: top;
+                    }
+
+                    .info-table {
+                      width: 100%;
+                      border-collapse: collapse;
+                    }
+                    .info-table td {
+                      padding: 4px 6px;
+                      vertical-align: top;
+                    }
+
+                    .label {
+                      color: #5c6b65;
+                      font-size: 9px;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      font-weight: bold;
+                    }
+                    .value {
+                      font-size: 12px;
+                      font-weight: bold;
+                      color: #153c32;
+                    }
+
+                    .score-box {
+                      background: #153c32;
+                      border-radius: 6px;
+                      padding: 12px;
+                      color: #ffffff;
+                      text-align: center;
+                    }
+                    .score-number {
+                      font-size: 32px;
+                      font-weight: bold;
+                      color: #d8b75b;
+                      line-height: 1;
+                    }
+                    .score-unit {
+                      font-size: 10px;
+                      color: #cfded8;
+                      margin-top: 2px;
+                    }
+                    .maturity-badge {
+                      display: inline-block;
+                      background: #d8b75b;
+                      color: #153c32;
+                      font-weight: bold;
+                      padding: 3px 10px;
+                      border-radius: 4px;
+                      font-size: 11px;
+                      margin-top: 6px;
+                    }
+
+                    .kpi-table {
+                      width: 100%;
+                      border-collapse: collapse;
+                    }
+                    .kpi-table td {
+                      padding: 6px 10px;
+                      border: 1px solid #eae4d6;
+                      background: #faf8f4;
+                      width: 25%;
+                      vertical-align: top;
+                    }
+
+                    .module-table {
+                      width: 100%;
+                      border-collapse: collapse;
+                    }
+                    .module-table td {
+                      padding: 4px 2px;
+                      vertical-align: middle;
+                    }
+                    .module-name {
+                      font-size: 10.5px;
+                      font-weight: bold;
+                      color: #153c32;
+                      width: 28%;
+                    }
+                    .module-bar-td {
+                      width: 58%;
+                      padding-right: 8px;
+                    }
+                    .module-val {
+                      font-size: 10.5px;
+                      font-weight: bold;
+                      color: #153c32;
+                      text-align: right;
+                      width: 14%;
+                    }
+                    .bar-track {
+                      background: #eae5d9;
+                      border-radius: 3px;
+                      height: 8px;
+                      width: 100%;
+                    }
+                    .bar-fill {
+                      background: #153c32;
+                      height: 8px;
+                      border-radius: 3px;
+                    }
+
+                    .founder-box {
+                      background: #f8f6f0;
+                      border: 1px solid #e0d8c8;
+                      border-radius: 6px;
+                      padding: 10px 14px;
+                    }
+                    .cta {
+                      display: inline-block;
+                      background: #153c32;
+                      color: #d8b75b;
+                      font-weight: bold;
+                      font-size: 10.5px;
+                      text-decoration: none;
+                      padding: 6px 14px;
+                      border-radius: 4px;
+                      margin-top: 6px;
+                    }
+
+                    .footer {
+                      font-size: 8.5px;
+                      color: #7b8882;
+                      text-align: center;
+                      margin-top: 8px;
+                      padding-top: 6px;
+                      border-top: 1px solid #e8e3d5;
+                      page-break-inside: avoid;
+                    }
                   </style>
                 </head>
                 <body>
-                  <div class="header">
-                    <table width="100%%" cellspacing="0" cellpadding="0">
+                  <table class="header-table" cellspacing="0" cellpadding="0">
+                    <tr>
+                      <td style="vertical-align:middle">__LOGO__</td>
+                      <td align="right" style="vertical-align:middle">
+                        <div style="font-size:18px;font-weight:bold;color:#ffffff">Ghost Load</div>
+                        <div class="tagline">Intelligence for AI Data Centers</div>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <table class="two-col" cellspacing="0" cellpadding="0" style="margin-bottom:10px">
+                    <tr>
+                      <td style="width:58%;padding-right:8px">
+                        <div class="card" style="margin-bottom:0">
+                          <p class="section-title">Empresa y Operador</p>
+                          <table class="info-table" cellspacing="0" cellpadding="0">
+                            <tr>
+                              <td style="width:50%"><span class="label">Empresa</span><br /><span class="value">__COMPANY__</span></td>
+                              <td style="width:50%"><span class="label">Operador</span><br /><span class="value">__FULL_NAME__</span></td>
+                            </tr>
+                            <tr>
+                              <td><span class="label">Cargo</span><br /><span class="value">__POSITION__</span></td>
+                              <td><span class="label">País</span><br /><span class="value">__COUNTRY__</span></td>
+                            </tr>
+                            <tr>
+                              <td colspan="2"><span class="label">Email</span><br /><span class="value">__EMAIL__</span></td>
+                            </tr>
+                          </table>
+                        </div>
+                      </td>
+                      <td style="width:42%">
+                        <div class="score-box">
+                          <div class="label" style="color:#a8c2b7">Resultado Benchmark</div>
+                          <div class="score-number">__TOTAL_SCORE__</div>
+                          <div class="score-unit">de 100 puntos</div>
+                          <div><span class="maturity-badge">__MATURITY__</span></div>
+                          <div style="font-size:10px;margin-top:6px;color:#ffffff">
+                            Percentil Industrial: <strong>__PERCENTILE__</strong>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <div class="card">
+                    <p class="section-title">KPIs de la Calculadora</p>
+                    <table class="kpi-table" cellspacing="0" cellpadding="0">
                       <tr>
-                        <td>__LOGO__</td>
-                        <td align="right">
-                          <div style="font-size:20px;font-weight:bold;color:#ffffff">Ghost Load</div>
-                          <div class="tagline">Intelligence for AI Data Centers</div>
-                        </td>
+                        <td><span class="label">Capacidad Total</span><br /><span class="value">__TOTAL_CAPACITY__</span></td>
+                        <td><span class="label">Capacidad Productiva</span><br /><span class="value">__PRODUCTIVE_CAPACITY__</span></td>
+                        <td><span class="label">Capacidad No Productiva</span><br /><span class="value">__NON_PRODUCTIVE_CAPACITY__</span></td>
+                        <td><span class="label">Utilización</span><br /><span class="value">__UTILIZATION__</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="label">No Productiva %</span><br /><span class="value">__NON_PRODUCTIVE_PERCENT__</span></td>
+                        <td><span class="label">Costo Mensual / kW</span><br /><span class="value">__MONTHLY_COST__</span></td>
+                        <td colspan="2" style="background:#f4efe1"><span class="label">Costo Anual Desperdiciado</span><br /><span class="value" style="color:#8b6914">__ANNUAL_COST__</span></td>
                       </tr>
                     </table>
                   </div>
 
-                  <div class="content">
-                    <div class="card">
-                      <p class="section-title">Empresa y operador</p>
-                      <table class="kpi-table" cellspacing="0" cellpadding="0">
-                        <tr>
-                          <td><span class="label">Empresa</span><br /><span class="value">__COMPANY__</span></td>
-                          <td><span class="label">Operador</span><br /><span class="value">__FULL_NAME__</span></td>
-                        </tr>
-                        <tr>
-                          <td><span class="label">Cargo</span><br /><span class="value">__POSITION__</span></td>
-                          <td><span class="label">País</span><br /><span class="value">__COUNTRY__</span></td>
-                        </tr>
-                        <tr>
-                          <td colspan="2"><span class="label">Email</span><br /><span class="value">__EMAIL__</span></td>
-                        </tr>
-                      </table>
-                    </div>
+                  <div class="card">
+                    <p class="section-title">Desempeño del Benchmark por Módulo</p>
+                    <table class="module-table" cellspacing="0" cellpadding="0">
+                      __MODULE_ROWS__
+                    </table>
+                  </div>
 
-                    <div class="card">
-                      <p class="section-title">KPIs de la calculadora</p>
-                      <table class="kpi-table" cellspacing="0" cellpadding="0">
-                        <tr>
-                          <td><span class="label">Capacidad total</span><br /><span class="value">__TOTAL_CAPACITY__</span></td>
-                          <td><span class="label">Capacidad productiva</span><br /><span class="value">__PRODUCTIVE_CAPACITY__</span></td>
-                        </tr>
-                        <tr>
-                          <td><span class="label">Capacidad no productiva</span><br /><span class="value">__NON_PRODUCTIVE_CAPACITY__</span></td>
-                          <td><span class="label">Utilización</span><br /><span class="value">__UTILIZATION__</span></td>
-                        </tr>
-                        <tr>
-                          <td><span class="label">Capacidad no productiva</span><br /><span class="value">__NON_PRODUCTIVE_PERCENT__</span></td>
-                          <td><span class="label">Costo mensual por kW</span><br /><span class="value">__MONTHLY_COST__</span></td>
-                        </tr>
-                        <tr>
-                          <td colspan="2"><span class="label">Costo anual estimado de capacidad desperdiciada</span><br /><span class="value">__ANNUAL_COST__</span></td>
-                        </tr>
+                  <div class="card">
+                    <p class="section-title">Contacto &amp; Próximos Pasos</p>
+                    <div class="founder-box">
+                      <table width="100%" cellspacing="0" cellpadding="0">
+                        __FOUNDER_ROWS__
                       </table>
-                    </div>
-
-                    <div class="card">
-                      <p class="section-title">Resultado del benchmark</p>
-                      <table class="benchmark-head" cellspacing="0" cellpadding="0">
-                        <tr>
-                          <td class="score-box">
-                            <div class="score-number">__TOTAL_SCORE__</div>
-                            <div class="score-unit">/ 100 puntos</div>
-                          </td>
-                          <td class="bench-detail">
-                            <div style="margin-bottom:6px"><span class="label">Nivel de madurez</span><br /><span class="maturity-badge">__MATURITY__</span></div>
-                            <div><span class="label">Posición vs. industria</span><br /><span class="value">Percentil __PERCENTILE__</span></div>
-                          </td>
-                        </tr>
-                      </table>
-                      <table class="module-row" width="100%%" cellspacing="0" cellpadding="0" style="margin-top:16px">
-                        __MODULE_ROWS__
-                      </table>
-                    </div>
-
-                    <div class="card">
-                      <p class="section-title">Hablemos de tu capacidad desperdiciada</p>
-                      <div class="founder-box">
-                        <table width="100%%" cellspacing="0" cellpadding="0">
-                          __FOUNDER_ROWS__
-                        </table>
-                        __CTA__
-                      </div>
+                      __CTA__
                     </div>
                   </div>
 
                   <div class="footer">
-                    <p style="margin:0">
-                      Reporte generado el __DATE__ para __COMPANY_NAME__.
-                      El percentil es una referencia del MVP y se actualizará con datos agregados
-                      de la industria cuando exista una muestra suficiente.
-                      Este documento contiene información confidencial de tu infraestructura.
-                    </p>
+                    Reporte generado el __DATE__ para __COMPANY_NAME__. Contiene información confidencial de infraestructura.
                   </div>
                 </body>
                 </html>
@@ -220,12 +358,9 @@ final class ReportHtmlTemplate {
         for (ModuleScore score : scores) {
             String label = MODULE_LABELS.getOrDefault(score.module(), score.module().name());
             double value = score.score();
-            rows.append("<tr class=\"module-row\">")
-                    .append("<td class=\"module-label\">").append(esc(label)).append("</td>")
-                    .append("<td class=\"module-value\">").append(number(value)).append("</td>")
-                    .append("</tr>")
-                    .append("<tr>")
-                    .append("<td colspan=\"2\">")
+            rows.append("<tr>")
+                    .append("<td class=\"module-name\">").append(esc(label)).append("</td>")
+                    .append("<td class=\"module-bar-td\">")
                     .append("<table width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" class=\"bar-track\">")
                     .append("<tr>")
                     .append("<td width=\"")
@@ -235,6 +370,7 @@ final class ReportHtmlTemplate {
                     .append("</tr>")
                     .append("</table>")
                     .append("</td>")
+                    .append("<td class=\"module-val\">").append(number(value)).append(" / 100</td>")
                     .append("</tr>");
         }
         return rows.toString();
@@ -254,10 +390,10 @@ final class ReportHtmlTemplate {
             return;
         }
         rows.append("<tr>")
-                .append("<td style=\"width:30%\"><span class=\"label\">")
+                .append("<td style=\"width:25%\"><span class=\"label\">")
                 .append(esc(label))
                 .append("</span></td>")
-                .append("<td><span class=\"value\">")
+                .append("<td><span class=\"value\" style=\"font-size:11px\">")
                 .append(esc(value))
                 .append("</span></td>")
                 .append("</tr>");
@@ -268,7 +404,7 @@ final class ReportHtmlTemplate {
         if (url == null || url.isBlank()) {
             return "";
         }
-        return "<a class=\"cta\" href=\"" + esc(url) + "\">Agendar una llamada</a>";
+        return "<a class=\"cta\" href=\"" + esc(url) + "\">Agendar una llamada de asesoría</a>";
     }
 
     private String logoMarkup() {
@@ -281,7 +417,7 @@ final class ReportHtmlTemplate {
                     String mime = mimeFor(file.getName());
                     String dataUri = "data:" + mime + ";base64,"
                             + Base64.getEncoder().encodeToString(bytes);
-                    return "<img src=\"" + dataUri + "\" alt=\"Ghost Load\" style=\"height:52px;width:auto\" />";
+                    return "<img src=\"" + dataUri + "\" alt=\"Ghost Load\" style=\"height:44px;width:auto\" />";
                 } catch (IOException exception) {
                     LOGGER.warn("No se pudo leer el logo configurado: {}", logoPath);
                 }
@@ -289,7 +425,7 @@ final class ReportHtmlTemplate {
                 LOGGER.warn("El logo configurado no existe: {}", logoPath);
             }
         }
-        return "<span style=\"font-size:26px;font-weight:bold;color:#d8b75b;letter-spacing:2px\">"
+        return "<span style=\"font-size:22px;font-weight:bold;color:#d8b75b;letter-spacing:2px\">"
                 + "GHOST LOAD</span>";
     }
 

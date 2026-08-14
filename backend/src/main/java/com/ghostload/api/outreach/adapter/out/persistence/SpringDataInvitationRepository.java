@@ -116,7 +116,7 @@ interface SpringDataInvitationRepository extends JpaRepository<InvitationJpaEnti
             @Param("newStatus") InvitationStatus newStatus,
             @Param("visitedAt") Instant visitedAt);
 
-    @Modifying
+    @Modifying(flushAutomatically = true)
     @Query("""
             update InvitationJpaEntity invitation
                set invitation.status = :newStatus,

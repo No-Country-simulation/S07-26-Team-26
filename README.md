@@ -177,20 +177,3 @@ docker compose --env-file backend/.env down
 
 
 
-<p align="center">
-  <a href="docs/README.md">
-    <img src="https://img.shields.io/badge/📚_Documentación-0F172A?style=for-the-badge&logo=readthedocs&logoColor=38BDF8">
-  </a>
-  <a href="docs/README.md">
-    <img src="https://img.shields.io/badge/🏛️_Arquitectura-1E1B4B?style=for-the-badge&logo=github&logoColor=A78BFA">
-  </a>
-  <a href="docs/README.md">
-    <img src="https://img.shields.io/badge/🚀_Roadmap-111827?style=for-the-badge&logo=rocket&logoColor=22D3EE">
-  </a>
-</p>
-
-# Arquitectura
-
-La siguiente imagen muestra la arquitectura general del sistema.
-
-![Arquitectura](docs/images/Arquitectura_23-7.png)

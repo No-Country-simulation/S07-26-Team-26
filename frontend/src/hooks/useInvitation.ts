@@ -53,7 +53,8 @@ export function useReportStatusPolling(evaluationId: string | undefined) {
     enabled: Boolean(evaluationId),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
-      return status === "REPORT_GENERATING" || status === undefined ? 1500 : false;
+      // Keep polling every 1.5s while pending; stop only when completed or failed
+      return status === "REPORT_COMPLETED" || status === "REPORT_FAILED" ? false : 1500;
     },
   });
 }

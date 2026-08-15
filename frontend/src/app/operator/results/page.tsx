@@ -8,14 +8,12 @@ import { Button } from "@/components/ui/Button";
 import { CategoryRadarChart } from "@/components/charts/CategoryRadarChart";
 import { CategoryBarList } from "@/components/charts/CategoryBarList";
 import { KpiCard } from "@/components/dashboard/KpiCard";
-import { useBenchmarkResults } from "@/store/benchmarkStore";
+import { useBenchmarkResults, useBenchmarkStore } from "@/store/benchmarkStore";
 import { OperatorStepGuard } from "@/components/shared/OperatorStepGuard";
 import { useCalculatorStore } from "@/store/calculatorStore";
 import { useInvitationStore } from "@/store/invitationStore";
-import { useDashboardKpis } from "@/hooks/useDashboard";
-import { useCompanies } from "@/hooks/useCompanies";
 import { maturityColor } from "@/lib/scoring";
-import { computePercentile, generateFindings, generateRecommendations } from "@/lib/insights";
+import { generateFindings, generateRecommendations } from "@/lib/insights";
 import { downloadCsv } from "@/lib/export";
 import { cn } from "@/lib/utils";
 
@@ -24,20 +22,17 @@ export default function OperatorResultsPage() {
   const invitation = useInvitationStore((s) => s.invitation);
   const evaluationId = useInvitationStore((s) => s.evaluation?.evaluationId);
   const { overallScore, maturityLevel, categoryBreakdown } = useBenchmarkResults();
+  const backendResult = useBenchmarkStore((s) => s.backendResult);
   const calculatorKpis = useCalculatorStore((s) => s.kpis);
-  const { data: kpis } = useDashboardKpis();
-  const { data: companies } = useCompanies();
 
-  const industryAverage = kpis?.averageScore ?? 60;
-  const aboveAverage = overallScore >= industryAverage;
-
-  const allScores = (companies ?? [])
-    .map((c) => c.score)
-    .filter((s): s is number => typeof s === "number");
-  const percentile = computePercentile(overallScore, allScores.length ? allScores : [industryAverage]);
+  // Use the percentile returned by the backend if available; otherwise show a placeholder.
+  const percentile = backendResult?.percentile != null
+    ? Math.round(backendResult.percentile)
+    : null;
 
   const findings = generateFindings(categoryBreakdown);
   const recommendations = generateRecommendations(categoryBreakdown);
+
 
   function handleExcelDownload() {
     const rows: (string | number)[][] = [
@@ -45,7 +40,7 @@ export default function OperatorResultsPage() {
       ["Organización", invitation?.companyName ?? ""],
       ["Puntaje Total", `${overallScore}/100`],
       ["Nivel", maturityLevel],
-      ["Percentil Industrial", `${percentile}%`],
+      ["Percentil Industrial", percentile != null ? `${percentile}%` : "—"],
       [],
       ["Categoría", "Puntaje"],
       ...categoryBreakdown.map((c) => [c.label, c.score]),
@@ -87,9 +82,9 @@ export default function OperatorResultsPage() {
         <KpiCard label="Nivel Actual" value={maturityLevel} icon={Layers} />
         <KpiCard
           label="Percentil Industrial"
-          value={`${percentile}%`}
+          value={percentile != null ? `${percentile}%` : "—"}
           dataCenterIcon="comparativo"
-          hint={aboveAverage ? "Por encima del promedio" : "Por debajo del promedio"}
+          hint={percentile != null ? (percentile >= 50 ? "Por encima del promedio" : "Por debajo del promedio") : undefined}
         />
         <KpiCard
           label="Capacidad Ociosa"
@@ -99,16 +94,18 @@ export default function OperatorResultsPage() {
         />
       </div>
 
-      {/* vs industry banner */}
-      <div className="flex items-center gap-2 rounded-md border border-graphite-100 bg-white px-5 py-3 text-sm text-graphite-600 shadow-panel">
-        {aboveAverage ? (
-          <TrendingUp className="h-4 w-4 text-forest-700" />
-        ) : (
-          <TrendingDown className="h-4 w-4 text-red-600" />
-        )}
-        Estás <strong className="text-graphite-900">{aboveAverage ? "por encima" : "por debajo"}</strong> del
-        promedio de la industria ({industryAverage}/100)
-      </div>
+      {/* vs industry banner — only shown when percentile data is available */}
+      {percentile != null && (
+        <div className="flex items-center gap-2 rounded-md border border-graphite-100 bg-white px-5 py-3 text-sm text-graphite-600 shadow-panel">
+          {percentile >= 50 ? (
+            <TrendingUp className="h-4 w-4 text-forest-700" />
+          ) : (
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          )}
+          Estás <strong className="text-graphite-900">{percentile >= 50 ? "por encima" : "por debajo"}</strong> del
+          promedio de la industria (percentil {percentile})
+        </div>
+      )}
 
       {/* Category performance */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

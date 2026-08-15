@@ -125,27 +125,7 @@ docker compose --env-file backend/.env down
 
 ---
 
-# Frontend - Benchmark
 
-Vista de la interfaz correspondiente al módulo de Benchmark.
-
-![Frontend Benchmark](docs/images/Front_End_Benchmark.png)
-
----
-
-# Frontend - Evaluación
-
-Vista de la interfaz correspondiente al módulo de Evaluación.
-
-![Frontend Evaluación](docs/images/Front_End_Evaluación.png)
-
----
-
-# Descarga de Reporte
-
-La siguiente imagen muestra la funcionalidad de descarga de reportes disponible en la aplicación.
-
-![Descarga de Reporte](docs/images/Descarga_Reporte.png)
 
 <p align="center">
   <a href="docs/README.md">

@@ -22,7 +22,7 @@ import benchmarkSchema from "@/mock/benchmark.json";
 import adminsData from "@/mock/admins.json";
 import operatorsData from "@/mock/operators.json";
 
-export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS !== "false";
+export const USE_MOCKS = process.env.NEXT_PUBLIC_USE_MOCKS === "true";
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 // Simulates real network latency so loading states are visible/testable.

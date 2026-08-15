@@ -1,336 +1,216 @@
-'use client';
-
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useCounterStore } from '@/store/counterStore';
-import { 
-  Users, 
-  RotateCw, 
-  Plus, 
-  Minus, 
-  RefreshCcw, 
-  Search, 
-  Cpu, 
-  Database, 
-  Compass, 
-  ExternalLink,
-  Mail,
-  Briefcase,
-  Layers
-} from 'lucide-react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  website: string;
-  company: {
-    name: string;
-  };
-}
+import Link from "next/link";
+import Image from "next/image";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 export default function Home() {
-  const { count, increment, decrement, reset, userFilter, setUserFilter } = useCounterStore();
-
-  const { 
-    data: users, 
-    isLoading, 
-    isError, 
-    error, 
-    isFetching, 
-    refetch, 
-    dataUpdatedAt 
-  } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: async () => {
-      // Simulate slow network to demonstrate loader aesthetics
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      const res = await fetch('https://jsonplaceholder.typicode.com/users');
-      if (!res.ok) throw new Error('Error al obtener los usuarios');
-      return res.json();
-    },
-  });
-
-  // Filter users based on search string from Zustand store
-  const filteredUsers = users?.filter(user =>
-    user.name.toLowerCase().includes(userFilter.toLowerCase()) ||
-    user.email.toLowerCase().includes(userFilter.toLowerCase()) ||
-    user.company.name.toLowerCase().includes(userFilter.toLowerCase())
-  );
-
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
-      {/* Decorative Ambient Background Glows */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen text-[#163236] bg-[#f7faf8] font-['Inter',sans-serif]">
+      <SiteHeader />
 
-      {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Header */}
-        <header className="text-center mb-16 space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 text-sm font-medium mb-2 backdrop-blur-md">
-            <Layers className="w-4 h-4" /> Next.js Base Project ready
-          </div>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400">
-            Next.js Stack Starter
-          </h1>
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400">
-            Un entorno moderno preconfigurado con Tailwind CSS, Zustand para estado global y React Query para estado del servidor.
-          </p>
+      {/* Main Container - 1440px Max Width with Blueprint Borders */}
+      <div className="max-w-[1440px] mx-auto blueprint-container relative">
+        {/* 1. El problema */}
+        <section className="section-divider py-24 md:py-32 px-6 md:px-16 relative overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center md:min-h-[640px]">
+            {/* Left Content */}
+            <div className="md:col-span-7 z-10 space-y-5">
+              <h1 className="font-['Sora',sans-serif] text-4xl md:text-[48px] lg:text-[56px] md:leading-[1.08] font-bold text-[#163236] tracking-tight max-w-3xl">
+                Detecta la carga fantasma de tu data center
+              </h1>
 
-          {/* Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Next.js 15 (App Router)
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Tailwind CSS
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              Zustand v5
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              React Query v5
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-slate-900 border border-slate-800 text-slate-300">
-              TypeScript
-            </span>
-          </div>
-        </header>
+              <p className="font-['Inter',sans-serif] text-lg md:text-[19px] text-[#365452] max-w-xl leading-relaxed">
+                Las GPUs hacen los cálculos de un data center de inteligencia
+                artificial. Cada una consume electricidad desde que se enciende,
+                incluso cuando no procesa datos.
+              </p>
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* LEFT: Zustand Controls (col-span-4) */}
-          <section className="lg:col-span-4 space-y-6">
-            
-            {/* Zustand Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-all duration-300" />
-              
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-                  <Cpu className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-white">Estado Global</h2>
-                  <p className="text-xs text-slate-500">Manejado por Zustand Store</p>
-                </div>
-              </div>
+              <p className="font-['Inter',sans-serif] text-lg md:text-[19px] font-bold text-[#163236] max-w-xl leading-relaxed">
+                En promedio, solo 41 de cada 100 GPUs encendidas están trabajando.
+              </p>
 
-              {/* Counter Demo */}
-              <div className="space-y-4 bg-slate-950/40 border border-slate-800/80 rounded-xl p-4 mb-6">
-                <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Demo Contador</span>
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-extrabold text-white font-mono">{count}</span>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={decrement}
-                      className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
-                      title="Decrementar"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={increment}
-                      className="p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
-                      title="Incrementar"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={reset}
-                      className="p-2 rounded-lg bg-slate-800/50 border border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-all hover:scale-105 active:scale-95"
-                      title="Resetear"
-                    >
-                      <RefreshCcw className="w-4 h-4" />
-                    </button>
+              <div className="max-w-xl">
+                <div className="flex overflow-hidden rounded-lg border border-[#b1cfd1] font-['JetBrains_Mono',monospace] text-lg font-bold text-[#163236]">
+                  <div
+                    className="bg-[#d5e7df] px-2 sm:px-3 py-3"
+                    style={{ width: "41%" }}
+                  >
+                    41 trabajan
+                  </div>
+                  <div
+                    className="bg-[#e1ead8] px-2 sm:px-3 py-3"
+                    style={{ width: "59%" }}
+                  >
+                    59 siguen inactivas
                   </div>
                 </div>
+                <p className="text-[#365452] text-lg pt-2 leading-relaxed">
+                  Datos promedio de 214 data centers de IA analizados en 2025.
+                </p>
               </div>
 
-              {/* Search Filter input */}
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Filtro de Usuarios</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                  <input
-                    type="text"
-                    value={userFilter}
-                    onChange={(e) => setUserFilter(e.target.value)}
-                    placeholder="Filtrar por nombre, email o compañía..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30 transition-all text-sm"
-                  />
-                </div>
-                {userFilter && (
-                  <p className="text-xs text-indigo-400 flex items-center gap-1.5 pt-1">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                    Filtro activo sincronizado globalmente
-                  </p>
-                )}
-              </div>
             </div>
 
-            {/* Structure info Card */}
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/20 p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-slate-300">Ubicaciones clave del proyecto:</h3>
-              <ul className="text-xs text-slate-400 space-y-2 font-mono">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Store Zustand: <span className="text-slate-300 ml-auto">src/store/counterStore.ts</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Provider Query: <span className="text-slate-300 ml-auto">src/providers/QueryProvider.tsx</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                  Página principal: <span className="text-slate-300 ml-auto">src/app/page.tsx</span>
-                </li>
-              </ul>
+            {/* Right Illustration */}
+            <div className="md:col-span-5 relative h-[320px] sm:h-[400px] md:h-[480px] w-full flex items-center justify-center">
+              <Image
+                src="/images/hero.jpg"
+                alt="Carga fantasma entre servidores de un data center"
+                fill
+                sizes="(max-width: 767px) calc(100vw - 3rem), (max-width: 1440px) 38vw, 550px"
+                className="object-contain animate-float"
+                priority
+              />
             </div>
-          </section>
-
-          {/* RIGHT: React Query Data Display (col-span-8) */}
-          <section className="lg:col-span-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-48 h-48 bg-violet-500/5 rounded-full blur-3xl group-hover:bg-violet-500/10 transition-all duration-300" />
-
-              {/* Card Header & Controls */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 border-b border-slate-800/80 pb-5">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400">
-                    <Database className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Estado del Servidor</h2>
-                    <p className="text-xs text-slate-500">Manejado por React Query & Fetching Asíncrono</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {dataUpdatedAt > 0 && (
-                    <span className="text-[11px] text-slate-500 font-mono hidden sm:inline-block">
-                      Act. {new Date(dataUpdatedAt).toLocaleTimeString()}
-                    </span>
-                  )}
-                  <button
-                    onClick={() => refetch()}
-                    disabled={isFetching}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-700 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <RotateCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-violet-400' : ''}`} />
-                    {isFetching ? 'Actualizando...' : 'Refrescar'}
-                  </button>
-                </div>
-              </div>
-
-              {/* React Query State Content */}
-              {isLoading ? (
-                // Shimmer Skeletons
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="border border-slate-800/60 rounded-xl p-4 bg-slate-950/20 space-y-3 animate-pulse">
-                      <div className="h-4 bg-slate-800 rounded w-3/4" />
-                      <div className="h-3 bg-slate-800 rounded w-1/2" />
-                      <div className="h-3 bg-slate-800 rounded w-5/6" />
-                    </div>
-                  ))}
-                </div>
-              ) : isError ? (
-                // Error State
-                <div className="p-6 rounded-xl border border-red-500/20 bg-red-500/5 text-center space-y-3">
-                  <p className="text-red-400 font-semibold">Error al cargar datos</p>
-                  <p className="text-xs text-slate-400">{error?.message || 'Algo salió mal al obtener los usuarios del servidor de pruebas.'}</p>
-                  <button 
-                    onClick={() => refetch()}
-                    className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/20 transition-all"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              ) : filteredUsers && filteredUsers.length > 0 ? (
-                // User Grid
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {filteredUsers.map((user) => (
-                    <div 
-                      key={user.id} 
-                      className="group/item border border-slate-850 hover:border-slate-700/60 rounded-xl p-4 bg-slate-950/30 hover:bg-slate-950/60 transition-all duration-200 shadow-md relative overflow-hidden"
-                    >
-                      <div className="flex flex-col h-full justify-between gap-3">
-                        <div className="space-y-1">
-                          <div className="flex items-start justify-between">
-                            <h3 className="font-bold text-slate-200 group-hover/item:text-white transition-colors">
-                              {user.name}
-                            </h3>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-850 text-slate-500">
-                              ID {user.id}
-                            </span>
-                          </div>
-
-                          {/* Email */}
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <Mail className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="truncate">{user.email}</span>
-                          </div>
-
-                          {/* Company */}
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <Briefcase className="w-3.5 h-3.5 text-slate-500" />
-                            <span className="truncate">{user.company.name}</span>
-                          </div>
-                        </div>
-
-                        {/* Website external link */}
-                        <div className="pt-2 border-t border-slate-900/50 flex items-center justify-between">
-                          <a 
-                            href={`https://${user.website}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold"
-                          >
-                            <Compass className="w-3 h-3" />
-                            {user.website}
-                            <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                // Empty filtered state
-                <div className="p-8 text-center border border-dashed border-slate-800 rounded-xl text-slate-500 space-y-2">
-                  <Users className="w-8 h-8 mx-auto text-slate-600" />
-                  <p className="text-sm font-medium">Ningún usuario coincide con tu filtro</p>
-                  <p className="text-xs">Prueba escribiendo otra palabra o limpia el buscador de Zustand.</p>
-                  <button 
-                    onClick={() => setUserFilter('')}
-                    className="text-xs text-indigo-400 font-semibold hover:underline"
-                  >
-                    Limpiar filtro
-                  </button>
-                </div>
-              )}
-            </div>
-          </section>
-
-        </div>
-
-        {/* Footer */}
-        <footer className="mt-20 border-t border-slate-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Enterprise Stack Boilerplate. Desarrollado con Next.js + Zustand + React Query.</p>
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Tailwind V4 Listo
-            </span>
-            <span>·</span>
-            <span>Control de Estado Activo</span>
           </div>
-        </footer>
 
+          <div className="mt-8 flex justify-center">
+            <a
+              href="#causas"
+              className="inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-[#24563c] bg-[#e8f0f2] px-7 py-3.5 font-['JetBrains_Mono',monospace] text-lg font-bold text-[#24563c] shadow-md transition-colors hover:bg-[#24563c] hover:text-white hover:shadow-lg"
+            >
+              <span>Conoce las causas</span>
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[22px]"
+              >
+                arrow_downward
+              </span>
+            </a>
+          </div>
+        </section>
+
+        {/* 2. Por qué pasa */}
+        <section
+          id="causas"
+          className="section-divider py-28 md:py-32 px-6 md:px-16 bg-[#e8f0f2] scroll-mt-20"
+        >
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
+            <h2 className="font-['Sora',sans-serif] text-3xl md:text-4xl font-bold text-[#163236]">
+              Por qué pasa esto
+            </h2>
+            <p className="text-lg text-[#365452] max-w-md md:text-right leading-relaxed">
+              Cuatro problemas operativos concentran la mayor parte de la
+              capacidad desperdiciada.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="border border-[#b1cfd1] p-6 rounded-xl bg-white shadow-sm">
+              <h3 className="font-['Sora',sans-serif] text-xl font-bold text-[#163236] mb-2">
+                Esperan datos
+              </h3>
+              <p className="text-lg text-[#365452] leading-relaxed">
+                Las GPUs procesan rápido, pero los datos llegan tarde. Durante la
+                espera permanecen encendidas y consumen energía.
+              </p>
+            </div>
+
+            <div className="border border-[#b1cfd1] p-6 rounded-xl bg-white shadow-sm">
+              <h3 className="font-['Sora',sans-serif] text-xl font-bold text-[#163236] mb-2">
+                Se reservan antes de tiempo
+              </h3>
+              <p className="text-lg text-[#365452] leading-relaxed">
+                Los equipos apartan GPUs para trabajos futuros. Mientras nadie
+                las usa, permanecen encendidas.
+              </p>
+            </div>
+
+            <div className="border border-[#b1cfd1] p-6 rounded-xl bg-white shadow-sm">
+              <h3 className="font-['Sora',sans-serif] text-xl font-bold text-[#163236] mb-2">
+                El calor limita la capacidad
+              </h3>
+              <p className="text-lg text-[#365452] leading-relaxed">
+                Si el sistema de enfriamiento llega a su límite, no puedes activar
+                más GPUs aunque tengas espacio y energía disponibles.
+              </p>
+            </div>
+
+            <div className="border border-[#b1cfd1] p-6 rounded-xl bg-white shadow-sm">
+              <h3 className="font-['Sora',sans-serif] text-xl font-bold text-[#163236] mb-2">
+                Los datos están separados
+              </h3>
+              <p className="text-lg text-[#365452] leading-relaxed">
+                Infraestructura y operaciones usan tableros distintos. Sin una
+                vista común, la capacidad desperdiciada pasa desapercibida.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <a
+              href="#costo"
+              className="inline-flex min-h-14 items-center gap-3 rounded-full border-2 border-[#24563c] bg-[#f7faf8] px-7 py-3.5 font-['JetBrains_Mono',monospace] text-lg font-bold text-[#24563c] shadow-md transition-colors hover:bg-[#24563c] hover:text-white hover:shadow-lg"
+            >
+              <span>Evalúa el impacto</span>
+              <span
+                aria-hidden="true"
+                className="material-symbols-outlined text-[22px]"
+              >
+                arrow_downward
+              </span>
+            </a>
+          </div>
+        </section>
+
+        {/* 3. Cuánto cuesta */}
+        <section id="costo" className="section-divider py-28 md:py-32 px-6 md:px-16 bg-[#f7faf8] scroll-mt-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            <div className="lg:col-span-7">
+              <h2 className="font-['Sora',sans-serif] text-3xl md:text-4xl font-bold text-[#163236] mb-3">
+                El costo de la carga fantasma
+              </h2>
+              <p className="font-['Inter',sans-serif] text-lg text-[#365452] max-w-2xl leading-relaxed mb-7">
+                En promedio, el{" "}
+                <span className="font-bold text-[#163236]">
+                  38% de la factura eléctrica
+                </span>{" "}
+                se destina a equipos encendidos que no producen. Aun así,{" "}
+                <span className="font-bold text-[#163236]">
+                  la mitad de los operadores
+                </span>{" "}
+                rechaza nuevos trabajos por falta de capacidad.
+              </p>
+
+              <Link
+                href="/assessment"
+                className="inline-flex min-h-12 items-center gap-2 bg-[#24563c] text-white font-['JetBrains_Mono',monospace] font-bold text-lg px-7 py-3.5 rounded-full hover:bg-[#163236] transition-colors shadow-md"
+              >
+                <span>Mide tu eficiencia</span>
+                <span
+                  aria-hidden="true"
+                  className="material-symbols-outlined text-[16px]"
+                >
+                  arrow_forward
+                </span>
+              </Link>
+            </div>
+
+            <div
+              className="lg:col-span-5 grid grid-cols-2 gap-3"
+              aria-label="Indicadores de desperdicio"
+            >
+              <div className="flex min-h-48 flex-col justify-center rounded-2xl border border-[#b1cfd1] bg-white p-6 shadow-sm">
+                <p className="font-['JetBrains_Mono',monospace] text-4xl md:text-5xl font-bold text-[#24563c]">
+                  38%
+                </p>
+                <p className="mt-2 text-lg leading-relaxed text-[#365452]">
+                  de la factura eléctrica no genera trabajo útil
+                </p>
+              </div>
+              <div className="flex min-h-48 flex-col justify-center rounded-2xl border border-[#24563c] bg-[#24563c] p-6 text-white shadow-sm">
+                <p className="font-['JetBrains_Mono',monospace] text-4xl md:text-5xl font-bold">
+                  50%
+                </p>
+                <p className="mt-2 text-lg leading-relaxed text-white">
+                  de los operadores rechaza nuevos trabajos
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <SiteFooter />
       </div>
     </div>
   );

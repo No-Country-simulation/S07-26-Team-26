@@ -1,19 +1,179 @@
 @import "tailwindcss";
 
-:root {
-  --background: #020617;
-  --foreground: #f8fafc;
+/* ---------------------------------------------------------------------------
+ * Design tokens and base utilities merged from Project Ghost Load (Minecraft)
+ * and the original globals for this workspace. Keeps existing helpers like
+ * `.blueprint-container` and motion utilities while adding the themed tokens
+ * so existing components keep their class names.
+ * ------------------------------------------------------------------------ */
+
+@theme {
+  --color-forest-950: #14210b;
+  --color-forest-900: #1f3512;
+  --color-forest-800: #2e4a1a;
+  --color-forest-700: #3f6023;
+  --color-forest-600: #5d8a3a;
+  --color-forest-500: #7fae55;
+  --color-forest-100: #e4eedb;
+  --color-forest-50: #f4f8ef;
+
+  --color-gold-700: #8b6914;
+  --color-gold-600: #b8860b;
+  --color-gold-500: #d4a017;
+  --color-gold-400: #e8c34a;
+  --color-gold-100: #fbf0d1;
+  --color-gold-50: #fdf8ec;
+
+  --color-graphite-950: #1c1c1c;
+  --color-graphite-900: #2b2b2b;
+  --color-graphite-800: #3a3a3a;
+  --color-graphite-700: #4a4a4a;
+  --color-graphite-600: #5c5c5c;
+  --color-graphite-400: #8a8a8a;
+  --color-graphite-200: #c6c6c6;
+  --color-graphite-100: #dcdcdc;
+  --color-graphite-50: #f4f2ed;
+
+  --color-wood-700: #5a3a1e;
+  --color-wood-600: #6b4226;
+  --color-wood-500: #8b5a2b;
+  --color-wood-400: #a9713a;
+  --color-wood-100: #eddfc9;
+  --color-wood-50: #f7f1e6;
+
+  --shadow-panel:
+    0 1px 2px rgba(20, 33, 11, 0.05), 0 1px 0 rgba(20, 33, 11, 0.04);
+  --shadow-card:
+    0 1px 3px rgba(20, 33, 11, 0.08), 0 8px 24px -12px rgba(20, 33, 11, 0.14);
+  --shadow-elevated:
+    0 4px 12px rgba(20, 33, 11, 0.08), 0 16px 40px -16px rgba(20, 33, 11, 0.2);
+  --shadow-bevel:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.55),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-bevel-sm:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.22);
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
 }
 
+/* Inline convenience tokens (fonts + fallbacks). We keep prior workspace
+   font tokens and also provide the project's recommended families. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-pixel:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+
+  /* Legacy workspace tokens preserved */
+  --background: #f7faf8;
+  --foreground: #163236;
+  --font-sora: "Sora", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-jetbrains-mono: "JetBrains Mono", monospace;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Body uses the graphite/off-white background token from the theme. */
+  body {
+    color: var(--color-graphite-900);
+    background-color: var(--color-graphite-50);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: var(--color-gold-100);
+    color: var(--color-forest-900);
+  }
+
+  /* Keep the stronger accessible focus ring from the workspace default. */
+  :focus-visible {
+    outline: 3px solid #24563c;
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  .grid-noise {
+    background-image:
+      linear-gradient(to right, rgba(20, 33, 11, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(20, 33, 11, 0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .stone-texture {
+    background-image: radial-gradient(
+      rgba(20, 33, 11, 0.035) 1px,
+      transparent 1px
+    );
+    background-size: 10px 10px;
+  }
+}
+
+/* Legacy workspace helpers and decorative patterns retained */
+.blueprint-container {
+  border-left: 1px solid #d9e6e7;
+  border-right: 1px solid #d9e6e7;
+  background-color: var(--background);
+  min-height: 100vh;
+}
+
+.section-divider {
+  border-bottom: 1px solid #d9e6e7;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* Print helpers — keep reduced margins for PDF exports */
+@media print {
+  @page {
+    margin: 14mm 12mm;
+  }
+  html,
+  body {
+    background: #fff;
+  }
 }

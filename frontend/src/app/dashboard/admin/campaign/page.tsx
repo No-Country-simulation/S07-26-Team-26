@@ -1,0 +1,392 @@
+"use client";
+
+import { FormEvent, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
+
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+
+export default function AdminCampaignPage() {
+  const router = useRouter();
+  const { isAuthenticated, accessToken } = useAuthStore();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [callToActionText, setCallToActionText] = useState("Abrir invitación");
+  const [contactImportId, setContactImportId] = useState("");
+  const [scheduledAt, setScheduledAt] = useState(() => {
+    const now = new Date();
+    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 16);
+  });
+  const [timezone, setTimezone] = useState("America/Argentina/Buenos_Aires");
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [responseMessage, setResponseMessage] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalMessage, setModalMessage] = useState("");
+  const [modalIsError, setModalIsError] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isAuthenticated, router]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const paramId = new URLSearchParams(window.location.search).get(
+      "contactImportId",
+    );
+    if (paramId) {
+      setContactImportId(paramId);
+    }
+  }, []);
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatus("submitting");
+    setResponseMessage("");
+
+    const trimmedName = name.trim();
+    const trimmedSubject = subject.trim();
+    const trimmedMessage = message.trim();
+    const trimmedCallToActionText = callToActionText.trim();
+    const normalizedImportId = contactImportId.trim();
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (trimmedName.length < 3 || trimmedName.length > 160) {
+      setStatus("error");
+      setResponseMessage("El nombre debe tener entre 3 y 160 caracteres.");
+      return;
+    }
+    if (trimmedSubject.length < 3 || trimmedSubject.length > 180) {
+      setStatus("error");
+      setResponseMessage("El asunto debe tener entre 3 y 180 caracteres.");
+      return;
+    }
+    if (trimmedMessage.length < 10 || trimmedMessage.length > 5000) {
+      setStatus("error");
+      setResponseMessage("El mensaje debe tener entre 10 y 5000 caracteres.");
+      return;
+    }
+    if (
+      trimmedCallToActionText.length < 2 ||
+      trimmedCallToActionText.length > 80
+    ) {
+      setStatus("error");
+      setResponseMessage(
+        "El texto del botón debe tener entre 2 y 80 caracteres.",
+      );
+      return;
+    }
+    if (!uuidRegex.test(normalizedImportId)) {
+      setStatus("error");
+      setResponseMessage("El ID de importación debe ser un UUID válido.");
+      return;
+    }
+
+    try {
+      if (!accessToken) {
+        throw new Error(
+          "No se encontró el token de sesión. Inicia sesión nuevamente.",
+        );
+      }
+
+      const scheduledAtIso = scheduledAt
+        ? new Date(scheduledAt).toISOString()
+        : null;
+
+      const payloadBody = {
+        name: trimmedName,
+        description: description.trim() || null,
+        subject: trimmedSubject,
+        message: trimmedMessage,
+        callToActionText: trimmedCallToActionText,
+        contactImportId: normalizedImportId,
+        scheduledAt: scheduledAtIso,
+        timezone: timezone.trim() || null,
+      };
+
+      console.debug("Crear campaña payload", payloadBody);
+
+      const createResult = await fetch(`${API_URL}/api/v1/admin/campaigns`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(payloadBody),
+      });
+
+      if (!createResult.ok) {
+        const text = await createResult.text();
+        let errorDetail: string | null = null;
+        let fieldErrors: string[] = [];
+        try {
+          const payload = JSON.parse(text);
+          errorDetail = payload?.message || payload?.error || null;
+          if (Array.isArray(payload?.fields)) {
+            const fields = payload.fields as Array<{
+              field?: string;
+              message?: string;
+            }>;
+            fieldErrors = fields.map(
+              (field) =>
+                `${field.field ?? "field"}: ${field.message ?? "error"}`,
+            );
+          }
+        } catch {
+          errorDetail = text;
+        }
+        const fullError = [errorDetail, ...fieldErrors]
+          .filter(Boolean)
+          .join(" | ");
+        throw new Error(
+          fullError || createResult.statusText || "Error al crear la campaña",
+        );
+      }
+
+      const payload = await createResult.json();
+      const campaignId = payload.id ?? payload.campaignId;
+      if (!campaignId) {
+        throw new Error("No se recibió el ID de campaña luego de crearla.");
+      }
+
+      const sendResult = await fetch(
+        `${API_URL}/api/v1/admin/campaigns/${campaignId}/send`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!sendResult.ok) {
+        const text = await sendResult.text();
+        let errorDetail: string | null = null;
+        try {
+          const payload = JSON.parse(text);
+          errorDetail = payload?.message || payload?.error || null;
+        } catch {
+          errorDetail = text;
+        }
+        throw new Error(
+          errorDetail || sendResult.statusText || "Error al enviar la campaña",
+        );
+      }
+
+      setStatus("success");
+      setResponseMessage(
+        `Campaña creada y enviada correctamente. ID: ${campaignId}`,
+      );
+      setModalTitle("Campaña enviada");
+      setModalMessage(
+        `La campaña se creó y se envió correctamente. ID: ${campaignId}`,
+      );
+      setModalIsError(false);
+      setShowModal(true);
+    } catch (error) {
+      setStatus("error");
+      const message =
+        error instanceof Error ? error.message : "Error desconocido";
+      setResponseMessage(message);
+      setModalTitle("Error");
+      setModalMessage(`No se pudo enviar la campaña: ${message}`);
+      setModalIsError(true);
+      setShowModal(true);
+    }
+  };
+
+  return (
+    <div className="min-h-[calc(100vh-2rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm shadow-slate-300">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
+              Outreach campaign
+            </p>
+            <h1 className="mt-3 text-4xl font-semibold text-slate-950">
+              Crear campaña de outreach
+            </h1>
+            <p className="mt-2 text-slate-600">
+              Completa los datos de la campaña y el ID de importación para
+              generar invitaciones.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/admin"
+            className="inline-flex items-center justify-center rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+          >
+            Volver al dashboard
+          </Link>
+        </div>
+
+        <form className="mt-10 space-y-6" onSubmit={handleSubmit}>
+          <div className="grid gap-6 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                Nombre de campaña
+              </span>
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                placeholder="Campaña de invitaciones"
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                Asunto del email
+              </span>
+              <input
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+                required
+                placeholder="Completa tu evaluación Ghost Load"
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                Texto del botón
+              </span>
+              <input
+                value={callToActionText}
+                onChange={(event) => setCallToActionText(event.target.value)}
+                required
+                placeholder="Abrir invitación"
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                ID de importación
+              </span>
+              <input
+                value={contactImportId}
+                onChange={(event) => setContactImportId(event.target.value)}
+                required
+                placeholder="UUID de importación de contactos"
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+          </div>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">
+              Mensaje del email
+            </span>
+            <textarea
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              required
+              rows={6}
+              placeholder="Hola, completá tu evaluación para recibir el reporte personalizado."
+              className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-700">
+              Descripción
+            </span>
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={3}
+              placeholder="Descripción breve de la campaña"
+              className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </label>
+
+          <div className="grid gap-6 sm:grid-cols-2">
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                Fecha de envío
+              </span>
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(event) => setScheduledAt(event.target.value)}
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+            <label className="block">
+              <span className="text-sm font-semibold text-slate-700">
+                Zona horaria
+              </span>
+              <input
+                value={timezone}
+                onChange={(event) => setTimezone(event.target.value)}
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </label>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="submit"
+              disabled={status === "submitting"}
+              className="inline-flex justify-center rounded-3xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {status === "submitting" ? "Creando campaña..." : "Crear campaña"}
+            </button>
+            <p className="text-sm text-slate-500">
+              Necesitas un `contactImportId` válido para enviar invitaciones.
+            </p>
+          </div>
+
+          {status === "success" && (
+            <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-800">
+              {responseMessage}
+            </div>
+          )}
+          {status === "error" && (
+            <div className="rounded-3xl border border-rose-500/20 bg-rose-500/10 p-4 text-rose-800">
+              {responseMessage}
+            </div>
+          )}
+        </form>
+      </div>
+
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-6">
+          <div className="w-full max-w-md rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-300">
+            <h2 className="text-xl font-semibold text-slate-950">
+              {modalTitle}
+            </h2>
+            <p
+              className={`mt-4 text-sm ${modalIsError ? "text-rose-600" : "text-emerald-600"}`}
+            >
+              {modalMessage}
+            </p>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="inline-flex justify-center rounded-3xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -8,6 +8,7 @@ import com.ghostload.api.assessment.domain.model.Evaluation;
 import com.ghostload.api.assessment.domain.model.EvaluationSource;
 import com.ghostload.api.assessment.domain.model.OperatorId;
 import com.ghostload.api.outreach.application.port.in.CompleteInvitationUseCase;
+import com.ghostload.api.reporting.application.port.in.GenerateReportPdfUseCase;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
@@ -19,6 +20,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class SubmitBenchmarkServiceTest {
 
@@ -39,10 +42,12 @@ class SubmitBenchmarkServiceTest {
         AtomicReference<Evaluation> savedEvaluation = new AtomicReference<>();
         AtomicReference<java.util.UUID> completedEvaluation = new AtomicReference<>();
         AtomicReference<Instant> completedAt = new AtomicReference<>();
+        AtomicReference<java.util.UUID> queuedPdf = new AtomicReference<>();
         CompleteInvitationUseCase completeInvitation = (evaluationId, instant) -> {
             completedEvaluation.set(evaluationId);
             completedAt.set(instant);
         };
+        GenerateReportPdfUseCase generateReportPdf = mock(GenerateReportPdfUseCase.class);
         SubmitBenchmarkService service = new SubmitBenchmarkService(
                 ignored -> Optional.of(evaluation),
                 savedEvaluation::set,
@@ -50,6 +55,7 @@ class SubmitBenchmarkServiceTest {
                 (evaluationId, version, savedAnswers, result) -> {
                 },
                 completeInvitation,
+                generateReportPdf,
                 CLOCK);
 
         var result = service.submit(new SubmitBenchmarkUseCase.SubmitBenchmarkCommand(
@@ -63,6 +69,7 @@ class SubmitBenchmarkServiceTest {
                 .isEqualTo("BENCHMARK_COMPLETED");
         assertThat(completedEvaluation.get()).isEqualTo(evaluation.id().value());
         assertThat(completedAt.get()).isEqualTo(NOW);
+        verify(generateReportPdf).queue(evaluation.id().value());
     }
 
     private List<BenchmarkQuestion> questions() {

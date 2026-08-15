@@ -11,6 +11,9 @@ import com.ghostload.api.outreach.domain.exception.InvalidContactFileException;
 import com.ghostload.api.outreach.domain.exception.InvalidInvitationException;
 import com.ghostload.api.outreach.domain.exception.InvitationNotFoundException;
 import com.ghostload.api.outreach.domain.exception.InvitationUnavailableException;
+import com.ghostload.api.reporting.domain.exception.PdfNotFoundException;
+import com.ghostload.api.reporting.domain.exception.PdfNotReadyException;
+import com.ghostload.api.reporting.domain.model.PdfStatus;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -194,6 +197,39 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 HttpStatus.CONFLICT.value(),
                 "INVALID_INVITATION",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    // NUEVO: el reporte en PDF no existe todavía -> 404
+    @ExceptionHandler(PdfNotFoundException.class)
+    ResponseEntity<ApiErrorResponse> handlePdfNotFound(
+            PdfNotFoundException exception,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "PDF_NOT_FOUND",
+                exception.getMessage(),
+                request.getRequestURI(),
+                null,
+                List.of()));
+    }
+
+    // NUEVO: el reporte no se puede descargar aún (en proceso o fallido) -> 409
+    @ExceptionHandler(PdfNotReadyException.class)
+    ResponseEntity<ApiErrorResponse> handlePdfNotReady(
+            PdfNotReadyException exception,
+            HttpServletRequest request) {
+        String code = exception.status() == PdfStatus.FAILED
+                ? "REPORT_FAILED"
+                : "REPORT_PROCESSING";
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                code,
                 exception.getMessage(),
                 request.getRequestURI(),
                 null,

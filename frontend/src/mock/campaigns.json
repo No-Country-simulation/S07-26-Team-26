@@ -1,0 +1,41 @@
+[
+  {
+    "id": "camp-001",
+    "name": "Q1 Hyperscaler Outreach",
+    "channel": "Email",
+    "createdAt": "2026-01-05",
+    "funnel": {
+      "registered": 3200,
+      "visited": 2940,
+      "started": 2718,
+      "completed": 2500,
+      "pdfGenerated": 2450
+    }
+  },
+  {
+    "id": "camp-002",
+    "name": "Colocation Providers EU",
+    "channel": "LinkedIn",
+    "createdAt": "2026-03-18",
+    "funnel": {
+      "registered": 940,
+      "visited": 810,
+      "started": 705,
+      "completed": 588,
+      "pdfGenerated": 560
+    }
+  },
+  {
+    "id": "camp-003",
+    "name": "AI Training Clusters NA",
+    "channel": "Partner Referral",
+    "createdAt": "2026-05-02",
+    "funnel": {
+      "registered": 512,
+      "visited": 470,
+      "started": 402,
+      "completed": 311,
+      "pdfGenerated": 298
+    }
+  }
+]

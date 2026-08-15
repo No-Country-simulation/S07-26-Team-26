@@ -4,6 +4,9 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+# PDFs generados en runtime
+pdf-storage/
+
 ### STS ###
 .apt_generated
 .classpath

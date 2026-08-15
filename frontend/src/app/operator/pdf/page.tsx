@@ -23,15 +23,12 @@ import {
 import { BrandCube } from "@/components/blocks/BrandCube";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { useBenchmarkResults } from "@/store/benchmarkStore";
+import { useBenchmarkResults, useBenchmarkStore } from "@/store/benchmarkStore";
 import { useCalculatorStore } from "@/store/calculatorStore";
 import { useInvitationStore } from "@/store/invitationStore";
 import { useReportStatusPolling } from "@/hooks/useInvitation";
-import { useDashboardKpis } from "@/hooks/useDashboard";
-import { useCompanies } from "@/hooks/useCompanies";
 import { downloadReportPdfBlob, USE_MOCKS } from "@/services/api";
 import { maturityColor } from "@/lib/scoring";
-import { computePercentile } from "@/lib/insights";
 import { cn, formatNumber, formatDate } from "@/lib/utils";
 import {
   FOUNDER_CONTACT,
@@ -58,20 +55,11 @@ export default function OperatorPdfPage() {
   const { data: report } = useReportStatusPolling(evaluationId);
   const reportStatus = report?.status ?? "REPORT_GENERATING";
 
-  // Same industry-position math as the results page (lib/insights.ts),
-  // reused here so the PDF and the on-screen results never disagree about
-  // where this operator stands.
-  const { data: dashboardKpis } = useDashboardKpis();
-  const { data: companies } = useCompanies();
-  const industryAverage = dashboardKpis?.averageScore ?? 60;
-  const aboveAverage = overallScore >= industryAverage;
-  const allScores = (companies ?? [])
-    .map((c) => c.score)
-    .filter((s): s is number => typeof s === "number");
-  const percentile = computePercentile(
-    overallScore,
-    allScores.length ? allScores : [industryAverage],
-  );
+  // Use the percentile returned by the backend benchmark result.
+  const backendResult = useBenchmarkStore((s) => s.backendResult);
+  const percentile = backendResult?.percentile != null
+    ? Math.round(backendResult.percentile)
+    : null;
 
   const reportRef = buildReportReference(evaluationId, generatedAt);
 
@@ -174,8 +162,7 @@ export default function OperatorPdfPage() {
                 Tu reporte institucional está listo
               </h1>
               <p className="max-w-md text-sm text-graphite-500">
-                Puntaje {overallScore}/100 · Nivel {maturityLevel} · Percentil{" "}
-                {percentile} de la industria. Descárgalo, compártelo o envíalo
+                 Puntaje {overallScore}/100 · Nivel {maturityLevel}{percentile != null ? ` · Percentil ${percentile} de la industria` : ""}. Descárgalo, compártelo o envíalo
                 directamente a tu equipo.
               </p>
             </div>
@@ -267,25 +254,27 @@ export default function OperatorPdfPage() {
                     <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-md border border-graphite-100 bg-graphite-50/50 px-5 py-4">
                       <div>
                         <p className="font-tabular text-2xl font-semibold text-graphite-900">
-                          Percentil {percentile}
+                          {percentile != null ? `Percentil ${percentile}` : "—"}
                         </p>
                         <p className="text-xs text-graphite-500">
                           frente a los operadores evaluados en el benchmark
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 text-sm">
-                        {aboveAverage ? (
-                          <TrendingUp className="h-4 w-4 text-forest-700" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-600" />
-                        )}
-                        <span className="text-graphite-600">
-                          <strong className="text-graphite-900">
-                            {aboveAverage ? "Por encima" : "Por debajo"}
-                          </strong>{" "}
-                          del promedio de la industria ({industryAverage}/100)
-                        </span>
-                      </div>
+                      {percentile != null && (
+                        <div className="flex items-center gap-1.5 text-sm">
+                          {percentile >= 50 ? (
+                            <TrendingUp className="h-4 w-4 text-forest-700" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-red-600" />
+                          )}
+                          <span className="text-graphite-600">
+                            <strong className="text-graphite-900">
+                              {percentile >= 50 ? "Por encima" : "Por debajo"}
+                            </strong>{" "}
+                            del promedio de la industria
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -313,6 +313,47 @@ export async function fetchBenchmarkSchema() {
   return fetch(`${API_BASE_URL}/benchmark/schema`).then((r) => r.json());
 }
 
+// --- Backend benchmark questions (with real UUIDs) ---------------------------
+
+export interface BackendScaleOption {
+  value: number; // 1-5
+  label: string; // INEXISTENT | INITIAL | DEFINED | MANAGED | OPTIMIZED
+}
+
+export interface BackendQuestion {
+  id: string; // UUID
+  version: string;
+  module: string; // ENERGY | GPU_UTILIZATION | COOLING | OPERATIONS | CAPACITY
+  order: number;
+  text: string;
+  active: boolean;
+  scale: BackendScaleOption[];
+}
+
+export interface BackendModuleScore {
+  module: string;
+  score: number;
+}
+
+export interface BackendBenchmarkResult {
+  totalScore: number;
+  maturityLevel: string;
+  percentile: number;
+  moduleScores: BackendModuleScore[];
+  completedAt: string;
+}
+
+export async function fetchBenchmarkQuestions(version = "v1"): Promise<BackendQuestion[]> {
+  if (USE_MOCKS) {
+    // In mock mode return an empty array; the benchmark page falls back to the local mock JSON.
+    return delay([] as BackendQuestion[]);
+  }
+  return fetch(`${API_BASE_URL}/api/v1/benchmark/questions?version=${version}`).then((r) => {
+    if (!r.ok) throw new Error("Error cargando preguntas del benchmark");
+    return r.json();
+  });
+}
+
 // --- Mutations (writes) — structured for a real backend from day one ------------
 
 export async function submitBenchmark(payload: {
@@ -480,8 +521,10 @@ export async function markCalculatorCompleted(evaluationId: string): Promise<{ s
 
 export async function submitOperatorBenchmark(payload: {
   evaluationId: string;
+  // When using real backend: Record<UUID, 1|2|3|4|5>.
+  // When using mocks: Record<"q1".."q20", string|number>.
   answers: Record<string, string | number> | any[];
-}): Promise<{ status: EvaluationStatus }> {
+}): Promise<{ status: EvaluationStatus; backendResult?: BackendBenchmarkResult }> {
   if (USE_MOCKS) return delay({ status: "BENCHMARK_COMPLETED" as const }, 500);
 
   const evaluationToken = useInvitationStore.getState().evaluation?.evaluationToken ?? "";
@@ -511,7 +554,10 @@ export async function submitOperatorBenchmark(payload: {
   }).then((r) => {
     if (!r.ok) throw new Error("Error al enviar el benchmark");
     return r.json();
-  }).then(() => ({ status: "BENCHMARK_COMPLETED" as const }));
+  }).then((data: BackendBenchmarkResult) => ({
+    status: "BENCHMARK_COMPLETED" as const,
+    backendResult: data,
+  }));
 }
 
 export type ReportStatus = "NOT_REQUESTED" | "REPORT_GENERATING" | "REPORT_COMPLETED" | "REPORT_FAILED";

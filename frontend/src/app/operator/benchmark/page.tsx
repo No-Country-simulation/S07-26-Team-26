@@ -2,79 +2,111 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { PixelMail } from "@/components/blocks/PixelIcons";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { BenchmarkQuestionCard } from "@/components/forms/BenchmarkQuestionCard";
-import { useBenchmarkStore } from "@/store/benchmarkStore";
+import { useBenchmarkStore, useActiveQuestions } from "@/store/benchmarkStore";
 import { useSubmitOperatorBenchmark } from "@/hooks/useInvitation";
 import { useInvitationStore } from "@/store/invitationStore";
-import { benchmarkQuestions } from "@/lib/scoring";
 import { OperatorStepGuard } from "@/components/shared/OperatorStepGuard";
-
-const questions = [...benchmarkQuestions].sort((a, b) => a.order - b.order);
+import { fetchBenchmarkQuestions, USE_MOCKS } from "@/services/api";
 
 export default function OperatorBenchmarkPage() {
   const router = useRouter();
   const evaluationId = useInvitationStore((s) => s.evaluation?.evaluationId);
   const setEvaluationStatus = useInvitationStore((s) => s.setEvaluationStatus);
-  const { currentIndex, answers, setAnswer, next, back, goTo, markSubmitted } =
-    useBenchmarkStore();
+
+  const {
+    currentIndex,
+    answers,
+    setAnswer,
+    goTo,
+    markSubmitted,
+    setBackendQuestions,
+    setBackendResult,
+  } = useBenchmarkStore();
+
   const submitMutation = useSubmitOperatorBenchmark();
 
-  const question = questions[currentIndex];
+  // Load backend questions on mount (no-op in mock mode)
+  const [questionsLoading, setQuestionsLoading] = useState(!USE_MOCKS);
+  const [questionsError, setQuestionsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (USE_MOCKS) return; // mock mode uses local JSON via useActiveQuestions()
+
+    let cancelled = false;
+    setQuestionsLoading(true);
+    fetchBenchmarkQuestions("v1")
+      .then((qs) => {
+        if (!cancelled && qs.length > 0) {
+          setBackendQuestions(qs);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setQuestionsError(err.message ?? "Error cargando preguntas");
+      })
+      .finally(() => {
+        if (!cancelled) setQuestionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Active questions: real backend questions (UUIDs) OR local mock questions
+  const questions = useActiveQuestions();
+
   const answeredCount = Object.keys(answers).length;
   const progressPct = Math.round((answeredCount / questions.length) * 100);
-  const isLast = currentIndex === questions.length - 1;
-  const currentAnswered =
-    answers[question.id] !== undefined && answers[question.id] !== "";
 
-  // Grouping logic: show 5 questions per step (stepper). Maintain local
-  // `groupIndex` for UI paging and keep the store's `currentIndex` in sync
-  // for compatibility with other helpers.
+  // Grouping logic: show 5 questions per step
   const [groupIndex, setGroupIndex] = useState(Math.floor(currentIndex / 5));
   const groupsCount = Math.ceil(questions.length / 5);
 
   useEffect(() => {
-    // If there are unanswered questions, navigate to the first unanswered one.
+    // If there are unanswered questions, navigate to the first unanswered one
     const firstUnanswered = questions.findIndex(
-      (q) => answers[q.id] === undefined || answers[q.id] === "",
+      (q) => answers[q.id] === undefined || answers[q.id] === ""
     );
     if (firstUnanswered !== -1) {
       goTo(firstUnanswered);
       setGroupIndex(Math.floor(firstUnanswered / 5));
-      // ensure the top of the page is visible when jumping to the first
-      // unanswered question
       setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
       return;
     }
 
-    // If there are no answers but currentIndex is non-zero (persisted state),
-    // reset to the start of the wizard.
+    // Reset to start if answers are empty but index is non-zero
     if (Object.keys(answers).length === 0 && currentIndex !== 0) {
       goTo(0);
       setGroupIndex(0);
       return;
     }
 
-    // Otherwise align the local group index with the store's currentIndex.
     setGroupIndex(Math.floor(currentIndex / 5));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [questions.length]); // re-run when questions load so index aligns
 
   const groupStart = groupIndex * 5;
   const groupQuestions = questions.slice(groupStart, groupStart + 5);
   const groupAnswered = groupQuestions.every(
-    (q) => answers[q.id] !== undefined && answers[q.id] !== "",
+    (q) => answers[q.id] !== undefined && answers[q.id] !== ""
   );
   const isLastGroup = groupIndex === groupsCount - 1;
 
   async function handleNextGroup() {
     if (isLastGroup) {
       if (evaluationId) {
-        await submitMutation.mutateAsync({ evaluationId, answers });
+        const result = await submitMutation.mutateAsync({ evaluationId, answers });
+        // Store the backend result so the results page can display real server scores
+        if (result.backendResult) {
+          setBackendResult(result.backendResult);
+        }
         setEvaluationStatus("BENCHMARK_COMPLETED");
       }
       markSubmitted();
@@ -85,7 +117,6 @@ export default function OperatorBenchmarkPage() {
     const nextGroupStart = (groupIndex + 1) * 5;
     goTo(nextGroupStart);
     setGroupIndex((g) => g + 1);
-    // scroll to top of page when moving between groups
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
   }
 
@@ -94,8 +125,29 @@ export default function OperatorBenchmarkPage() {
     const prevStart = Math.max(0, (groupIndex - 1) * 5);
     goTo(prevStart);
     setGroupIndex((g) => g - 1);
-    // scroll to top of page when moving between groups
     setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 0);
+  }
+
+  // Loading state while fetching questions
+  if (questionsLoading) {
+    return (
+      <OperatorStepGuard step="benchmark">
+        <div className="flex flex-col items-center justify-center gap-4 py-20 text-graphite-500">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-sm">Cargando preguntas del benchmark…</p>
+        </div>
+      </OperatorStepGuard>
+    );
+  }
+
+  if (questionsError) {
+    return (
+      <OperatorStepGuard step="benchmark">
+        <div className="rounded-md border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+          No se pudieron cargar las preguntas: {questionsError}
+        </div>
+      </OperatorStepGuard>
+    );
   }
 
   return (

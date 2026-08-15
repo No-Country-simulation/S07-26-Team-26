@@ -1,4 +1,84 @@
-## AI Interprise Intellegent Business  | S07-26-Team-26
+## AI Interprise Intellegent Business  | Gosht Load Server
+**Identificador de Eficiencia de Data Centers**
+
+Ghost Load es una aplicación empresarial para operadores de data centers que ayuda a identificar capacidad no productiva, evaluar madurez operativa y generar reportes PDF personalizados. El proyecto está diseñado como un monolito modular con una arquitectura hexagonal que separa el negocio de las tecnologías externas.
+
+![Frontend Evaluación](docs/images/Banner_Presentacion.png)
+
+![Frontend Evaluación](docs/images/Resumen_Ejecutivo.png)
+![Frontend Evaluación](docs/images/Banner_Equipo.png)
+
+
+
+# Stack tecnológico
+
+## Lenguajes
+
+- **Java 21** — Backend
+  - Aproximadamente **93.7%** del proyecto
+  - Spring Boot 4.1.0
+
+- **TypeScript** — Frontend
+  - Aproximadamente **5.8%** del proyecto
+  - React 19
+  - Next.js 16.2.11
+
+## Frameworks y runtime
+
+### Backend
+
+- **Spring Boot 4.1.0**
+- **Java 21**
+- **Maven**
+
+### Frontend
+
+- **Next.js 16.2.11**
+- **React 19**
+- **TypeScript**
+
+## Tecnologías principales
+
+- **Base de datos:** PostgreSQL 16
+- **Autenticación:** JWT — JSON Web Tokens
+- **Generación de PDF:** OpenHtmlToPDF
+- **Procesamiento de CSV:** Apache Commons CSV
+- **State Management:** Zustand
+- **HTTP Client:** TanStack React Query
+- **UI Components:** Lucide React
+- **Estilos:** Tailwind CSS
+- **Contenedores:** Docker
+- **Cloud:** AWS
+
+---
+
+# Estructura del proyecto
+
+```text
+.
+├── backend/                          # API REST con lógica de negocio
+│   ├── src/main/java/com/ghostload/api/
+│   │   ├── assessment/              # Evaluaciones y calculadora
+│   │   ├── reporting/               # Generación de reportes PDF
+│   │   ├── outreach/                # Campañas e invitaciones
+│   │   ├── administration/          # Panel admin y login
+│   │   ├── shared/                  # Código compartido
+│   │   └── config/                  # Configuración Spring
+│   ├── pom.xml                      # Dependencias Maven
+│   ├── .env.example                 # Variables de entorno
+│   └── Dockerfile
+│
+├── frontend/                         # Interfaz web con Next.js
+│   ├── package.json
+│   ├── Dockerfile
+│   └── src/
+│
+├── docker-compose.yml               # Orquestación de servicios
+├── README.md                        # Documentación principal
+└── docs/
+    ├── README.md
+    ├── openapi.yaml                 # Contrato HTTP
+    └── images/
 
 
 ---

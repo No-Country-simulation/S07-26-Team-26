@@ -5,10 +5,13 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { dashboardFakeData } from "@/data/dashboardFakeData";
+import { AdminOutreachAreaChart } from "@/components/charts/AdminOutreachAreaChart";
+import { AdminEmailDeliveryDonut } from "@/components/charts/AdminEmailDeliveryDonut";
+import { AdminCampaignStatusChart } from "@/components/charts/AdminCampaignStatusChart";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -27,32 +30,39 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-[calc(100vh-2rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm shadow-slate-200">
+      <div className="mx-auto max-w-6xl space-y-8 rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-sm shadow-slate-200">
+        {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
-              Panel administrativo
+            <p className="text-sm uppercase tracking-[0.3em] font-semibold text-emerald-700">
+              Panel Administrativo
             </p>
-            <h1 className="mt-3 text-4xl font-semibold text-slate-950">
+            <h1 className="mt-2 text-4xl font-semibold text-slate-950">
               Dashboard Admin
             </h1>
-            <p className="mt-2 text-slate-600">
-              Bienvenido. Este espacio está protegido y solo es accesible tras
-              iniciar sesión.
+            <p className="mt-1 text-slate-600">
+              Métricas clave, analítica de envíos y conversión del sistema.
             </p>
           </div>
-          <div className="inline-flex items-center rounded-3xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm shadow-emerald-100">
-            <img
-              src="/icons/07_notificacion.png"
-              alt="Notificaciones"
-              className="h-5 w-5"
-            />
-            <span className="ml-3">Actualizaciones disponibles</span>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/dashboard/admin/campaign"
+              className="inline-flex items-center justify-center rounded-3xl bg-emerald-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500 shadow-sm"
+            >
+              + Nueva Campaña
+            </Link>
+            <Link
+              href="/dashboard/admin/contact-import"
+              className="inline-flex items-center justify-center rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100"
+            >
+              Importar CSV
+            </Link>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+        {/* Top Numeric KPI Grid */}
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5 transition hover:bg-slate-100/70">
             <div className="flex items-center gap-3">
               <img
                 src="/icons/12_servidor.png"
@@ -63,14 +73,17 @@ export default function AdminDashboardPage() {
                 <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
                   Importaciones
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950 tracking-normal">
+                <p className="mt-1 text-2xl font-semibold text-slate-950">
                   {dashboardFakeData.outreach.totalContactImports}
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm text-slate-500">Total imports</p>
+            <p className="mt-3 text-xs text-slate-500">
+              {dashboardFakeData.outreach.uniqueContacts} contactos únicos
+            </p>
           </div>
-          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5 transition hover:bg-slate-100/70">
             <div className="flex items-center gap-3">
               <img
                 src="/icons/09_trofeo.png"
@@ -79,294 +92,205 @@ export default function AdminDashboardPage() {
               />
               <div>
                 <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Campañas
+                  Campañas Totales
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950 tracking-normal">
+                <p className="mt-1 text-2xl font-semibold text-slate-950">
                   {dashboardFakeData.outreach.totalCampaigns}
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm text-slate-500">Campañas totales</p>
+            <p className="mt-3 text-xs text-slate-500">
+              {dashboardFakeData.outreach.activeCampaigns} activas en curso
+            </p>
           </div>
-          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5 transition hover:bg-slate-100/70">
             <div className="flex items-center gap-3">
               <img
                 src="/icons/07_notificacion.png"
-                alt="Emails enviados"
+                alt="Emails Enviados"
                 className="h-8 w-8"
               />
               <div>
                 <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Emails enviados
+                  Emails Enviados
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950 tracking-normal">
+                <p className="mt-1 text-2xl font-semibold text-slate-950">
                   {dashboardFakeData.emailDelivery.sentEmails}
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm text-slate-500">Emails enviados</p>
+            <p className="mt-3 text-xs text-slate-500">
+              {dashboardFakeData.emailDelivery.deliveryRate}% tasa de entrega
+            </p>
           </div>
-          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-6">
+
+          <div className="rounded-[2rem] border border-slate-200 bg-slate-50 p-5 transition hover:bg-slate-100/70">
             <div className="flex items-center gap-3">
               <img
                 src="/icons/11_porcentaje.png"
-                alt="Completion rate"
+                alt="Completion Rate"
                 className="h-8 w-8"
               />
               <div>
                 <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Completion rate
+                  Completion Rate
                 </p>
-                <p className="mt-1 text-2xl font-semibold text-slate-950 tracking-normal">
+                <p className="mt-1 text-2xl font-semibold text-slate-950">
                   {dashboardFakeData.completionTracking.completionRate}%
                 </p>
               </div>
             </div>
-            <p className="mt-3 text-sm text-slate-500">Tasa de completado</p>
+            <p className="mt-3 text-xs text-slate-500">
+              {dashboardFakeData.completionTracking.evaluationsCompleted} evaluaciones listas
+            </p>
           </div>
         </div>
 
-        <div className="mt-10 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
-                  Outreach
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-950">
-                  Estadísticas generales
-                </h2>
-              </div>
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs uppercase tracking-[0.3em] text-emerald-700">
-                Próximo
+        {/* Main Chart 1: Outreach & Funnel Trend */}
+        <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] font-semibold text-emerald-700">
+                Tendencia Semanal
+              </p>
+              <h2 className="text-2xl font-semibold text-slate-950 mt-1">
+                Evolución de Outreach y Conversión
+              </h2>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-medium text-slate-600">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-emerald-600 inline-block" /> Envíos
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-sky-600 inline-block" /> Visitas
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-purple-600 inline-block" /> Completados
               </span>
             </div>
-            <div className="mt-6 h-52 rounded-[2rem] bg-emerald-50 p-4 text-slate-500">
-              <p className="mt-16 text-center text-sm">
-                Aquí irá el chart de envíos / apertura.
+          </div>
+          <AdminOutreachAreaChart />
+        </section>
+
+        {/* Charts Row 2: Delivery Donut & Campaign Status */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Email Delivery Donut Chart */}
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100 flex flex-col justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] font-semibold text-emerald-700">
+                Entrega de Emails
               </p>
+              <h3 className="text-xl font-semibold text-slate-950 mt-1 mb-4">
+                Estado de Envíos
+              </h3>
             </div>
+            <AdminEmailDeliveryDonut />
+          </section>
+
+          {/* Campaign Status Bar Chart */}
+          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100 flex flex-col justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] font-semibold text-emerald-700">
+                Distribución de Campañas
+              </p>
+              <h3 className="text-xl font-semibold text-slate-950 mt-1 mb-4">
+                Campañas por Estado
+              </h3>
+            </div>
+            <AdminCampaignStatusChart />
           </section>
         </div>
 
-        <div className="mt-10 grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-          <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-sm uppercase tracking-[0.3em] text-emerald-700">
-                  Outreach
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-950">
-                  Estadísticas generales
-                </h2>
-              </div>
-              <div className="inline-flex items-center gap-2 rounded-3xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                <img
-                  src="/icons/11_porcentaje.png"
-                  alt="Últimos datos"
-                  className="h-4 w-4"
-                />
-                <span>Últimos datos fake</span>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Importaciones totales
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.totalContactImports}
-                </p>
-              </div>
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Contactos únicos
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.uniqueContacts}
-                </p>
-              </div>
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Campañas totales
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.totalCampaigns}
-                </p>
-              </div>
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Tasa de entrega
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.emailDelivery.deliveryRate}%
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Importaciones en proceso
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.processingImports}
-                </p>
-              </div>
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Campañas listas
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.readyCampaigns}
-                </p>
-              </div>
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Campañas activas
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.outreach.activeCampaigns}
-                </p>
-              </div>
-            </div>
-          </section>
-
-          <aside className="space-y-6">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-              <h3 className="text-xl font-semibold text-slate-950">
-                Estado de importaciones
-              </h3>
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                <div className="rounded-[1.75rem] bg-slate-50 p-4 text-center">
-                  <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                    Completadas
-                  </p>
-                  <p className="mt-3 text-xl font-semibold text-slate-950 tracking-normal">
-                    {dashboardFakeData.outreach.completedImports}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] bg-slate-50 p-4 text-center">
-                  <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                    Fallidas
-                  </p>
-                  <p className="mt-3 text-xl font-semibold text-slate-950 tracking-normal">
-                    {dashboardFakeData.outreach.failedImports}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] bg-slate-50 p-4 text-center">
-                  <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                    Envíos
-                  </p>
-                  <p className="mt-3 text-xl font-semibold text-slate-950 tracking-normal">
-                    {dashboardFakeData.emailDelivery.sentEmails}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-              <h3 className="text-xl font-semibold text-slate-950">
-                Seguimiento
-              </h3>
-              <div className="mt-5 space-y-4 text-sm text-slate-600">
-                <div className="rounded-[1.75rem] bg-slate-50 p-4">
-                  <p className="text-slate-500">Invitaciones enviadas</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">
-                    {dashboardFakeData.completionTracking.invitationsSent}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] bg-slate-50 p-4">
-                  <p className="text-slate-500">Links visitados</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">
-                    {dashboardFakeData.completionTracking.linksVisited}
-                  </p>
-                </div>
-                <div className="rounded-[1.75rem] bg-slate-50 p-4">
-                  <p className="text-slate-500">Evaluaciones completadas</p>
-                  <p className="mt-2 text-2xl font-semibold text-slate-950">
-                    {dashboardFakeData.completionTracking.evaluationsCompleted}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        {/* Bottom Section: Benchmark & Completion Metrics */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Completion Funnel Summary */}
           <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-            <h3 className="text-xl font-semibold text-slate-950">
-              Email delivery
+            <h3 className="text-xl font-semibold text-slate-950 mb-4">
+              Funnel de Embudos de Invitación
             </h3>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Pendientes
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.emailDelivery.pendingEmails}
-                </p>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                  <span>Invitaciones Enviadas</span>
+                  <span>{dashboardFakeData.completionTracking.invitationsSent} (100%)</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-emerald-500 w-full" />
+                </div>
               </div>
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Fallidos
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.emailDelivery.failedEmails}
-                </p>
+              <div>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                  <span>Links Visitados</span>
+                  <span>{dashboardFakeData.completionTracking.linksVisited} (53.4%)</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-sky-500 w-[53.4%]" />
+                </div>
               </div>
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Procesando
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.emailDelivery.processingEmails}
-                </p>
+              <div>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                  <span>Evaluaciones Iniciadas</span>
+                  <span>{dashboardFakeData.completionTracking.evaluationsStarted} (32.7%)</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-amber-500 w-[32.7%]" />
+                </div>
               </div>
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-[0.72rem] uppercase tracking-[0.06em] text-slate-500 font-semibold">
-                  Tasa de entrega
-                </p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950 tracking-normal">
-                  {dashboardFakeData.emailDelivery.deliveryRate}%
-                </p>
+              <div>
+                <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1">
+                  <span>Evaluaciones Completadas</span>
+                  <span>{dashboardFakeData.completionTracking.evaluationsCompleted} (18.1%)</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div className="h-full rounded-full bg-purple-500 w-[18.1%]" />
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100">
-            <h3 className="text-xl font-semibold text-slate-950">Resultados</h3>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                  Puntaje benchmark
+          {/* Results Benchmark & Reports */}
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-100 flex flex-col justify-between">
+            <h3 className="text-xl font-semibold text-slate-950 mb-4">
+              Resultados de Benchmark & PDF
+            </h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-[1.75rem] bg-emerald-50 border border-emerald-100 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                  Puntaje Promedio
                 </p>
-                <p className="mt-3 text-3xl font-semibold text-slate-950">
+                <p className="mt-2 text-3xl font-bold text-emerald-950">
                   {dashboardFakeData.results.averageBenchmarkScore}%
                 </p>
-              </div>
-              <div className="rounded-[1.75rem] bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                  PDFs generados
+                <p className="mt-2 text-xs text-emerald-700">
+                  Calculado sobre evaluaciones completadas
                 </p>
-                <p className="mt-3 text-3xl font-semibold text-slate-950">
+              </div>
+
+              <div className="rounded-[1.75rem] bg-slate-50 border border-slate-200 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Reportes PDF
+                </p>
+                <p className="mt-2 text-3xl font-bold text-slate-950">
                   {dashboardFakeData.results.generatedPdfs}
+                </p>
+                <p className="mt-2 text-xs text-slate-500">
+                  Documentos PDF generados
                 </p>
               </div>
             </div>
+            <div className="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+              <Link
+                href="/dashboard/admin/campaign"
+                className="text-xs font-semibold text-emerald-700 hover:underline inline-flex items-center gap-1"
+              >
+                Ver todas las campañas &rarr;
+              </Link>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-10">
-          <Link
-            href="/dashboard/admin/campaign"
-            className="inline-flex items-center justify-center rounded-3xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition hover:bg-emerald-500"
-          >
-            Crear campaña de outreach
-          </Link>
         </div>
       </div>
     </div>
   );
 }
+

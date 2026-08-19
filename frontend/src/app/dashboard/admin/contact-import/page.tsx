@@ -20,7 +20,7 @@ export default function AdminContactImportPage() {
   const router = useRouter();
   const { isAuthenticated, accessToken } = useAuthStore();
   const [hasMounted, setHasMounted] = useState(false);
-  const [name, setName] = useState("Importación de contactos");
+  const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -45,6 +45,13 @@ export default function AdminContactImportPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setMessage("Debes ingresar un nombre para la importación.");
+      setStatus("error");
+      return;
+    }
+
     if (!file) {
       setMessage("Selecciona un archivo CSV antes de continuar.");
       setStatus("error");
@@ -63,7 +70,7 @@ export default function AdminContactImportPage() {
     setStats(null);
 
     const formData = new FormData();
-    formData.append("name", name);
+    formData.append("name", trimmedName);
     formData.append("file", file);
 
     try {
@@ -192,6 +199,7 @@ export default function AdminContactImportPage() {
                   value={name}
                   onChange={(event) => setName(event.target.value)}
                   required
+                  placeholder="Ej: Contactos Agosto 2026"
                   className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-950 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 />
               </label>
@@ -261,7 +269,7 @@ export default function AdminContactImportPage() {
                     </div>
                     <div className="rounded-3xl bg-white p-4 shadow-sm shadow-slate-200">
                       <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                        Duplicados/invalidos
+                        Duplicados
                       </p>
                       <p className="mt-2 text-2xl font-semibold text-slate-950">
                         {stats.duplicates + stats.invalidRows}

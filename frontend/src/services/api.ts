@@ -649,3 +649,112 @@ export async function prepareCampaignFromContacts(payload: {
     body: JSON.stringify(payload),
   }).then((r) => r.json());
 }
+
+// --- Admin Contact Imports & Admin Campaigns ---------------------------------
+
+export interface ContactImport {
+  importId: string;
+  name: string;
+  validContacts: number;
+  createdAt: string;
+}
+
+export type AdminCampaignStatus =
+  | "DRAFT"
+  | "READY"
+  | "SENDING"
+  | "ACTIVE"
+  | "COMPLETED"
+  | "FAILED";
+
+export interface AdminCampaign {
+  id: string;
+  name: string;
+  status: AdminCampaignStatus;
+  recipientCount: number;
+  createdAt: string;
+}
+
+export async function fetchAdminContactImports(
+  accessToken: string
+): Promise<ContactImport[]> {
+  if (USE_MOCKS) {
+    return delay([
+      {
+        importId: "c1690a21-1107-4510-a7db-45a2ec940c01",
+        name: "Contactos agosto",
+        validContacts: 45,
+        createdAt: "2026-08-07T15:30:00Z",
+      },
+    ]);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/contact-imports`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las importaciones de contactos.");
+  }
+
+  return response.json();
+}
+
+export async function fetchAdminCampaigns(
+  accessToken: string,
+  status?: string
+): Promise<AdminCampaign[]> {
+  if (USE_MOCKS) {
+    const mockList: AdminCampaign[] = [
+      {
+        id: "89125bd7-5c96-4869-ba0b-b035d44d9316",
+        name: "Campaña agosto",
+        status: "READY",
+        recipientCount: 45,
+        createdAt: "2026-08-07T16:00:00Z",
+      },
+      {
+        id: "72124ac3-4b85-3758-aa0a-a024c33c8205",
+        name: "Campaña julio Q3",
+        status: "COMPLETED",
+        recipientCount: 120,
+        createdAt: "2026-07-15T10:00:00Z",
+      },
+      {
+        id: "19123fe1-2a12-4110-b11c-d101e44f9100",
+        name: "Borrador Lanzamiento",
+        status: "DRAFT",
+        recipientCount: 10,
+        createdAt: "2026-08-01T12:00:00Z",
+      },
+      {
+        id: "55123cc9-9f99-4411-a88d-e901f44f9999",
+        name: "Envío Prueba Servidores",
+        status: "FAILED",
+        recipientCount: 5,
+        createdAt: "2026-08-05T09:15:00Z",
+      },
+    ];
+
+    if (status && status !== "ALL") {
+      return delay(mockList.filter((c) => c.status === status));
+    }
+    return delay(mockList);
+  }
+
+  const query = status && status !== "ALL" ? `?status=${encodeURIComponent(status)}` : "";
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/campaigns${query}`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener el listado de campañas.");
+  }
+
+  return response.json();
+}
+

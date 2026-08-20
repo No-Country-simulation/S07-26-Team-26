@@ -1,13 +1,17 @@
 ## AI Interprise Intellegent Business  | Gosht Load Server
-**Identificador de Eficiencia de Data Centers**
+
 
 <p align="center">
   <a href="https://youtu.be/ACqUvRgQqZY?si=gKL-bPkWQ4mJ9nM5">
-    <img src="docs/images/logo_youtube.png" alt="Ver video en YouTube" width="150">
+    <img src="docs/images/youtube_kry_style.png" alt="YouTube" width="190">
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://github.com/No-Country-simulation/S07-26-Team-26/blob/main/docs/README.md">
+    <img src="docs/images/next_steps_kry_style.png" alt="Next Steps" width="190">
   </a>
 </p>
 
-
+**Identificador de Eficiencia de Data Centers**
 
 
 Ghost Load es una aplicación empresarial para operadores de data centers que ayuda a identificar capacidad no productiva, evaluar madurez operativa y generar reportes PDF personalizados. El proyecto está diseñado como un monolito modular con una arquitectura hexagonal que separa el negocio de las tecnologías externas.

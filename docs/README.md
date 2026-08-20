@@ -1,36 +1,33 @@
-## Diccionario de servicios Docker
 
-| Componente | Servicio Docker | Contenedor | Tecnología / imagen | Puerto local | Puerto interno | Descripción |
-| --- | --- | --- | --- | --- | --- | --- |
-| Base de datos | `postgres` | `ghost-load-db` | `postgres:16-alpine` | `5432` | `5432` | Almacena los datos de la aplicación |
-| Backend | `backend` | `backend` | Spring Boot / Dockerfile en `./backend` | `8080` | `8080` | API y lógica de negocio |
-| Frontend | `frontend` | `frontend` | Next.js / Dockerfile en `./frontend` | `3001` | `3000` | Interfaz web de la aplicación |
+<p align="center">
+  <img src="images/Cierre.png" alt="Next Step IA" width="850">
+</p>
 
-### PostgreSQL
 
-| Propiedad | Valor |
-| --- | --- |
-| Host dentro de Docker | `postgres` |
-| Puerto | `5432` |
-| Base de datos | `ghost_load` |
-| Usuario local | `postgres` |
-| Volumen persistente | `postgres_data` |
-| Ruta del volumen | `/var/lib/postgresql/data` |
-| URL utilizada por el backend | `jdbc:postgresql://postgres:5432/ghost_load` |
 
-### Comunicación entre servicios
 
-- El frontend se comunica con el backend mediante `http://backend:8080`.
-- El backend se comunica con PostgreSQL mediante `postgres:5432`.
-- PostgreSQL debe estar saludable antes de iniciar el backend.
-- El backend debe iniciarse antes que el frontend.
 
-### Acceso desde la computadora
+<p align="center">
+  <img src="images/0_Next_Step_IA.png" alt="Next Step IA" width="850">
+</p>
 
-| Aplicación | Dirección |
-| --- | --- |
-| Frontend | `http://localhost:3001` |
-| Backend | `http://localhost:8080` |
-| PostgreSQL | `localhost:5432` |
+<p align="center">
+  <img src="images/1-Prediccion_Balanceo.png" alt="Predicción y Balanceo" width="850">
+</p>
 
-> Los nombres `postgres`, `backend` y `frontend` funcionan como nombres de host dentro de la red interna de Docker Compose.
+<p align="center">
+  <img src="images/2- Gestion_reservas.png" alt="Gestión de Reservas" width="850">
+</p>
+
+<p align="center">
+  <img src="images/3_Mantenimiento_refrigeracion.png" alt="Mantenimiento Refrigeración" width="850">
+</p>
+
+
+
+
+
+
+
+
+

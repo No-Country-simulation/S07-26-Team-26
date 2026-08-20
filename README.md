@@ -4,7 +4,11 @@
 Ghost Load es una aplicación empresarial para operadores de data centers que ayuda a identificar capacidad no productiva, evaluar madurez operativa y generar reportes PDF personalizados. El proyecto está diseñado como un monolito modular con una arquitectura hexagonal que separa el negocio de las tecnologías externas.
 <br>
 <br>
+![Frontend Evaluación](docs/images/Ficha_Presentacion.png)
 
+
+
+docs/images/Banner_Presentacion.png
 
 ![Frontend Evaluación](docs/images/Banner_Presentacion.png)
 <br>
